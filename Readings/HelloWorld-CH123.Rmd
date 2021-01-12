@@ -217,3 +217,85 @@ d. Model Evaluation: during this phase of model development, we assess the model
 
 #### 2.1.1 Design for Humans
 
+1. To contrast the tidyverse approach with more traditional R semantics, consider sorting a data frame. Using only the core languae, we can sort a data frame using one or more columns by reordering the rows va R'S substripting rules in conjunction with `order()`; you cannot succesfully use a function you might be tempted to try in such a situation because of its names, `sort()`. To sort the `mtcars` data by two of its columns, the call might lok like:
+
+```{r eval = FALSE}
+mtcars[order(mtcars$gear, mtcars$mpg)]
+```
+
+While very computationally efficient, it would be difficult to argue that this is an intuitive user interface. In `dplyr` by contrast, the tidyverse function `arrange()` takes a set of variable names as input arguments directly:
+
+```{r eval = FALSE}
+libray(dplyr)
+arrange(.data = mtcars, gear, mpg)
+```
+
+Note: the variable names used here (e.g. mtcars, gear, mpg) are "unquoted"; many traditional R functions require a character string to specify variables, but tidyverse functions take unquoted names or selector functions. The selectors allow for one or more readabl rules that are applied to the column names.  For example, `ends_with("t")` would select `drat` and `wt`columns of the `mtcars` data frame. 
+
+2. The tidyverse approach is to use function names that are descriptive and explicit over those that are short and implicit. 
+
+a. There is a focus on verbs (e.g. fit, arrange, etc.) for general metohds. Verb-noun pairs are particularly effective.
+
+b. Names should be as self-documenting as posible. 
+
+c. When there are similar functions a package, function names are designed to be optimized for tab-completion. 
+
+(1) For example, the glue package has a collection of functions starting with a common prefix (glue_) that enables users to quickly find the function they are looking for. 
+
+
+#### 2.1.2 Reuse Existing Data Structures
+
+1. Whenever possible, functions should avoid returning a novel data structure. 
+
+a. If the results are conducive to an existing data structure, it should be used. This reduces the cognitive load when using software; no additional syntax or methods are required. 
+
+
+2. One data structure that is used as much as possible in tidyverse and tidymodels packages is the data frame. 
+
+a. Data frame can represent different types of data in each column, and multiple values in each row. 
+
+b. Tibbles, a type of data frame, are preferred since they have additional properties that are helpful for data analysis. 
+
+(1) As an example, the rsample package can be used to create resamples of a data set, such as cross-validation orthe bootstrap. 
+
+The resampling functions return a tibble with column called `splits` of objects that define the resampled data sets. Three bootstrap samples of a data set might lok like: 
+
+```{r}
+library(rsample)
+
+boot_samp <- rsample::bootstraps(mtcars, times = 3)
+
+boot_samp
+
+class(boot_samp)
+```
+
+(2) With this approach, vector-based functions can be used with these columns, sch as `vapply` or `purrr:map()`. This `boot_samp` object has multiple classes but inherits methods for data frames ("data.frame") and tibble ("tbl_df"). 
+
+(3) Additionally, new columns can be added to the results without affecting the class of the data. This is much easier and more versatile for users to work with than a completely new object type that does not make its data structure obvious. 
+
+
+2. One downside to relying on common data structure is the potential loss of computational performance. In some situations, data can be encoded in specialized formats that are more efficient representations of the data. 
+
+a. For example:
+
+(1) In computational chemistry, the structure-data file format (SDF) is a tool to take chemical structres and encode them in a format that is computationally efficient to work with. 
+
+(2) Data that have a large number ofvalues that are the same (such as zeros for binary data) can be stored in a `sparse matrix` format. This format can reduce the size of the data as well as enable more efficient computational techniques. 
+
+b. These formats are advantageous when the problem is well scoped and the potential data processing methods are both well defined and suited to such a format. However, once such constraints are violated, specialized data formats are less useful. 
+
+(1) For example, if we perform a transformation of the data that converts the data into fractional numbers, the output is no longer sparse; the sparse matrix represetation is helpful for one specific alogrithmic step in modeling but is often not true before or after that specific step.
+
+3. A specialized data structure is not flexible enough for an entire modeling in the way that a common data structure is. 
+
+4. One important feature in the tibble produced by rsample is that the `splits` column is a list. In this instance, each element of the list has the sam typeo f object: an `rsplit` object that conains the information about which rowof `mtcars` belong in the bootstrap sample. 
+
+a. List columns can be very useful in data analysis and are important to tidymodels.
+
+
+#### 2.1.3 Design for the Pipe and Functional Programming
+
+1. The `magrittr` pipe operator (`%>%`) is a tool for chaining together a sequence of R functions. 
+
+
