@@ -62,12 +62,12 @@ C. **Predictive Models**
 
 5. There are many ways that a predictive model can be created, so the important factors depend on how the model was developed. 
 
-a. Mechanistic Model: could be derived using first principles to produce a model equation that is dependent on assumptions. Data are used to estimate the unknown parameters of this equation so that predictions can be generated. 
+a. Mechanistic Model (parametric model): could be derived using first principles to produce a model equation that is dependent on assumptions. Data are used to estimate the unknown parameters of this equation so that predictions can be generated. 
 (1) Like inferential models, mechanistic predictive models greatly depend on the assumptions that define their model equations. However, unlike inferential models, it is easy to make data-driven statements about how well the model performs based on how well it predicts the existing data. 
 
 (2) Here the feedback loop for the modeling practitioner is much faster than it would be for a hypothesis test. 
 
-b. Empirically Driven Models: created with more vague assumptions. These models tend to fall into the machine learning category. 
+b. Empirically Driven Models (non-parametric model): created with more vague assumptions. These models tend to fall into the machine learning category. 
 
 (1) A good example is the K-nearest neighbor (KNN) model. Given a set of reference data, a new sample is predicted by using the values of the K most similar data in the reference set.
 
@@ -110,20 +110,27 @@ Predictive performance tends to be related to how close the model's fitted value
 
 A. **Supervised v.s. Unsupervised Model**
 
-1. Unsupervised Models: those that learn patterns, clusters, or other characteristics of the data but lack an outcome variable (i.e. a dependent variable). They are used to understand relationships between variables or sets of variables without an explicit relationship between variables and an outcome. 
+1. Unsupervised Models (Data-driven with unlabelled data): those that learn patterns, clusters, or other characteristics of the data but lack an outcome variable (i.e. a dependent variable). They are used to understand relationships between variables or sets of variables without an explicit relationship between variables and an outcome. 
 
 
-a. Examples: Principal Component Analysis (PCA), Clustering, and Autoencoders. 
+a. Examples: Principal Component Analysis (PCA) (reduce dimensions), Clustering (divide by similarity), and Autoencoders, Association (identify sequences), dimension reduction (wider dependencies).
 
-2. Supervised Models: those that have an outcome variable.
+b. Unsupervised learning usually happens during exploratory analysis. 
 
-a. Examples: Linear Regression, Neural Networks.
+
+c. Objectives: pattern/structure recognition
+
+2. Supervised Models (Task-driven with pre-cateogrized data ): those that have an outcome variable.
+
+a. Examples: Regression (divde the ties by length), Neural Networks, classification (divide the socks by color)
 
 b. With supervised models, there are two main sub-categories:
 
 (1) Regression: predicts a numeric outcome.
 
 (2) Classification: predicts an outcome that is an ordered or unordered set of qualitative values.
+
+c. Objective: predictions & predictive models
 
 
 B. **Data Types**
@@ -260,7 +267,7 @@ b. Tibbles, a type of data frame, are preferred since they have additional prope
 
 The resampling functions return a tibble with column called `splits` of objects that define the resampled data sets. Three bootstrap samples of a data set might lok like: 
 
-```{r}
+```{r eval FALSE}
 library(rsample)
 
 boot_samp <- rsample::bootstraps(mtcars, times = 3)
@@ -559,3 +566,444 @@ c. This pipeline of operations illustrates why the tidyverse is popular. A serie
 
 
 ### 3.1 An Example
+
+1. Example: 
+
+a. Experimental data from McDonald (2009), by way of Mangiafico (2015), on the relationship between the ambient temperature and the rate of cricket chirps per minute. 
+
+b. Data were collected for two species: O. exlamationis and O. niveus.
+
+c. The data are contained in a data frame called `crikets` with a total of 31 data points. 
+
+```{r}
+
+library(tidyverse)
+
+data(crickets, package = "modeldata")
+names(crickets)
+#> [1] "species" "temp"    "rate"
+
+# Plot the temperature on the x-axis, the chirp rate on the y-axis. The plot
+# elements will be colored differently for each species:
+ggplot(crickets, aes(x = temp, y = rate, col = species)) + 
+  # Plot points for each data point and color by species
+  geom_point() + 
+  # Show a simple linear model fit created separately for each species:
+  geom_smooth(method = lm, se = FALSE) + 
+  labs(x = "Temperature (C)", y = "Chirp Rate (per minute)")
+#> `geom_smooth()` using formula 'y ~ x'
+
+```
+
+d. Observations:
+
+(1) The data exhibit fairly linear trends for each species. For a given temperature, O.exclamationis appears to chirp more per minute than the other spieces. 
+
+(2) For an inferential model, the researchers might have specified the following null hypotheses prior to seeing the data:
+
+(a) Temperature has no effect on the chirp rate
+
+(b) There are no differences between the species' chirp rate
+
+e. Fit an odinary linear model in R, the `lm()` function is commonly used. 
+(1) The important arguments to `lm()`: a model formula, a data frame that contains the data. 
+
+(a) The formula is symbolic:
+
+```{r eval = FALSE}
+
+rate ~ temp # chirp rate is the outcome and temperature is the predictor
+
+```
+
+
+```{r eval = FALSE}
+
+rate ~ temp + time
+
+# represent tgat temperature and time should be added as separate main effects to the model
+
+# a main effect is a model term that contains a single predictor variable. 
+
+```
+
+
+```{r eval = FALSE}
+
+rate ~ temp + species
+
+# species is not a quantitative variable, it is represented as a factor column with levels "O.exclamationis" and "O.nives". 
+
+# for species, the model needs to encode the species data in a numeric format. The most common approach is to use indicator variables in place of the original qualitative values. 
+
+# in this instance, since species has two possible values, the model formula will automatically encode this column as numeric  by adding a new column that has a value 0 when the species is "O. exclamationis" and a value of 1 when the data correspond to "O. niveus". 
+
+# suppose there were 5 species instead ot two. The model formula would automatically add 4 = 5 - 1 additional binary columns that are binary indicators for four of the species. The reference level of the factor is always left out of the predictor set. The idea is that, if you know the values of the four indicator variables, the value of the species can be determined. 
+
+```
+
+<1> The model formula rate ~ temp + species ceates a model with different yintercepts for each species. 
+
+<2> The slopes of regression lines could also be different for each species. To accommodate different slopes, we add an interaction term to the model:
+
+```{r eval = FALSE}
+
+rate ~ temp + species + temp:species # a colon is used to indicate interaction term
+
+rate ~ (temp + species)^2 # a shortcut for expanding all interactions with two variables
+
+rate ~ (temp * species)^2 # a equivalent shortcut for expanding all interactions with two variables
+
+```
+
+
+
+<3> Other niceties of the model formula:
+
+<a> Inline functions can be used in the formula:
+
+* `rate ~ log(temp)`
+
+* `rate ~ I((temp * 9/5) + 32)` the identity function `I()` applies literal math to the predictors.
+
+<b> R has many functions that are useful inside of formulas. 
+
+* `poly(x, 3)` creates linear, quardratic and cubic terms for `x` to the model as main effects. 
+
+* The `splines` package also has functions to create nonlinear spline terms in the formula. 
+
+<c> For data sets where there are many predictors, the period shortcut is available. The period represents main effects for all of the columns that are not on the left-hand side of the tilde. 
+
+* `~ (.)^3` creates main effects as well as all two- and three- variables interactions to the model. 
+
+
+(2) Fit a two-way interaction model to chirping crikets:
+
+```{r}
+
+interaction_fit <- lm(rate ~ (temp + species)^2, data = crickets)
+
+
+# To print a short summary of the model:
+
+interaction_fit
+
+
+
+```
+
+(3) Before going into any inferential results for this model, the fit should be assessed using diagnostic plots.
+
+(a) Use the `plot()` method for `lm` objects. This method produces a set of four plots for the object, each showing different aspects of the fit. 
+
+```{r}
+
+# place two plots next to one another
+par(mfrow = c(1, 2))
+
+# show residuals vs predicted values
+plot(interaction_fit, which = 1)
+
+# a normal quantile plot on the residuals
+plot(interaction_fit, which = 2)
+
+```
+
+These appear reasonable enough to conduct inferential analysis. 
+
+(b) When it comes to the technical details of evaluating expressions, R is lazy meaning that model fitting functions typically compute the minimum possible quantities at the last possible moment. 
+
+<1> For example, the coefficient table for each model term is not automatically computed but computed via the `summary()` method. 
+
+(4) Next step with the crickets example is to check if the inclusion of the interaction term is necessary: the most appropriate approach for this model is to re-compute the model without the interaction term and use the `anova()` method.
+
+```{r}
+
+# Fit a reduced model:
+main_effect_fit <-  lm(rate ~ temp + species, data = crickets) 
+
+# Compare the two:
+anova(main_effect_fit, interaction_fit)
+#> Analysis of Variance Table
+#> 
+#> Model 1: rate ~ temp + species
+#> Model 2: rate ~ (temp + species)^2
+#>   Res.Df  RSS Df Sum of Sq    F Pr(>F)
+#> 1     28 89.3                         
+#> 2     27 85.1  1      4.28 1.36   0.25
+
+```
+This statistical test generates a p-value of 0.25. This implies that there is a lack of evidence for the alternative hypothesis that the interaction term is needed by the model. Thus, the interaction term should be dropped. 
+
+(5) Residual plots should be re-assessed to make sure that our theoretical assumptions are valid enough to trust the p-value producted by the model. 
+
+```{r}
+
+# place two plots next to one another
+par(mfrow = c(1, 2))
+
+# show residuals vs predicted values
+plot(main_effect_fit, which = 1)
+
+# a normal quantile plot on the residuals
+plot(main_effect_fit, which = 2)
+
+```
+
+
+(6) We can use `summary()` method to inspect the coefficients, standard errors, and p-values of each model term:
+
+```{r}
+
+summary(main_effect_fit)
+
+```
+
+(a) The chirp rate for each species increases by 3.6 chirps as the temperature increases by a single degree. This term shows strong statistical significance as evidence by the p-value. 
+
+(b) The species term has a value of -10.07. This indicates that, across all temperature values, O.niveus has a chirp rate that is about 10 fewer chirps per minite than that O.exclamationis. The species effect is also associated with a very small p-value. 
+
+(c) The only issue in this analysis is the intercept value. It indicates that at 0 degree, there are negative chirps per minute for both species. While this does not make sense, the data only go as low as 17.2 degree and thus interpreting the model at 0 degree would be _extrapolation_. This would be a bad idea. 
+
+<1> The model fit is good within the applicable range of the temperature values; the conclusions should be limited to the observed temperature range. 
+
+
+(7) If we need to estimate the chirp rate at a temperature that was not observed in the experiment but within the applicable range, we could use the `predict()` method: it takes the model object and a data frame of new values for prediction. 
+
+```{r}
+# estimate the chirp rate for O.exclamationis for temperatures between 15 degrees to 20 degrees
+
+# Note: the non-numeric value of species is passed to the predic() instead of the numeric, binary indicator variable 
+new_values <- data.frame(species = "O. exclamationis", temp = 15:20)
+
+
+predict(main_effect_fit, new_values)
+```
+
+f. Highlights of the example: 
+
+(1) The language has an expressive syntax for specifying model terms for both simple and quite complex models. 
+
+(2) The R formula method has many conveniences for modeling that are also applied to new data when predictions are generated.
+
+(3) There are numerous helper functions (e.g. `anova()`, `summary()`, and `predict()`) that you can use to conduct specific calculations after the fitted model is created. 
+
+
+### 3.2 What does the R Formula Do?
+
+1. The R model formula is used by many modeling packages. It usually serves multiple puerposes:
+
+a. The formula identifies the columns that are used by the model. 
+
+b. The standard R machinery uses the formula to encode the columns into an appropriate format. 
+
+c. The roles of the columns are defined by the formula. 
+
+(1) Our focus when typing out a formula is often to declare how the columns should be used. 
+
+```{r eval = FALSE}
+
+(temp + species)^2
+
+```
+
+This formula means that there are two predictos and the model should contain their main effects and the two-way interactions. 
+
+This formula also implies that since `species` is a factor, it should also create indicator variable columns for this predcitor and multiply thoses columns by the `temp` column to create the interactions. 
+
+
+### 3.3 Why Tidyness is Important for Modeling?
+
+1. One of the strengths of R is that it encourages developers to create a user-interface that fits their needs. 
+
+a. Example: there are three common methods for creating a scatter plot of two numeric variables in a data frame called `plot_data`:
+
+```{r eval = FALSE}
+
+plot(plot_data$x, plot_data$y)
+
+library(lattice)
+xyplot(y~x, data = plot_data)
+
+library(ggplot2)
+ggplot(plot_data, aes(x = x, y = y)) + geom_point()
+
+```
+
+In these three cases, separate groups of developers devised three distinct interfaces for the same task. Each has advantages and disadvantages. 
+
+2. There are a variety of statistical and machine learning models you could choose from. However, there is significant heterogeneity in the argument values used by those methods and can be difficult for people to navigate. 
+
+a. Example: argument values for different models:
+
+![](ArgsValuesforDiffModels.PNG)
+
+
+3. The R language has conventions for missing data which are handled inconsistently. 
+
+a. The general rule is that missing data propagate more missing data; the average of a set of values with a missing data point is itself missing and so on. 
+
+b. When models make predictions, the vast majority require all of the predictors to have complete values. 
+
+c. There are several options in R at this point with the generic function `na.action()`. This set the policy for how a function should behave if there are missing values. The two common policies are:
+
+(1) `na.fail()`: produces an error if missing data are present
+
+(2) `na.omit()`: removes the missing data prior to calculations by case-wise deletion. 
+
+d. Example: crickets
+```{r eval = FALSE}
+
+# Add a missing value to the prediction set
+new_values$temp[1] <- NA
+
+# The predict method for `lm` defaults to `na.pass`:
+predict(main_effect_fit, new_values)
+#>     1     2     3     4     5     6 
+#>    NA 50.43 54.04 57.64 61.24 64.84
+
+# Alternatively 
+predict(main_effect_fit, new_values, na.action = na.fail)
+#> Error in na.fail.default(structure(list(temp = c(NA, 16L, 17L, 18L, 19L, : missing values in object
+
+predict(main_effect_fit, new_values, na.action = na.omit)
+#>     2     3     4     5     6 
+#> 50.43 54.04 57.64 61.24 64.84
+
+```
+
+(1) From a user's point of view, `na.omit()` may be problematic. In our example, `new_values` has 6 rows but only 5 would be returned with `na.omit()`. To adjust for this, the user would have to determine which row had the missing value and interleave a missing value in the appropriate place if the predictions were merged into `new_values`. 
+
+(2) It is rare that a prediction function uses `na.omit()` as its missing data policy. 
+
+
+4. The tidymodels packages have a set of design goals that fall under the existing rubric of *Design for Humans* from the tidyverse, but there are a few additional design goals that complement those of the tidyverse:
+
+a. R has excellent capabilities for object oriented programming.
+
+b. Sensible defaults are very important. Also, functions should have no default for arguments when it is more appropriate to force the user to make a chioce.
+
+c. Argument values whose default can be derived from the data should be. 
+(1) Example: for `glm()` the `family` argument could check the type of data in the outcome and, if no `family` was given, a default could be determined internally. 
+
+c. Functions should take the *data strctures that users have * as opposed to the data structure that developers want. 
+(1) Example: a model function's only interface should not be constrained to matrices. Frequently, users will have non-numeric predictors such as factors. 
+
+d. The `broom::tidy()` function is another tool for standardizing the structure of R objects. 
+(1) It can return many types of R objects in a ore usable format. 
+
+(2) Example: suppose the predictors are being screened based on their correlation to the outcome column. Using `purrr::map()`, the results from `cor.test()` can be returned in a list for each predictor:
+
+```{r}
+data(mtcars)
+corr_res <- map(mtcars %>% select(-mpg), cor.test, y = mtcars$mpg)
+
+# The first of ten results in the vector: 
+corr_res[[1]]
+#> 
+#>  Pearson's product-moment correlation
+#> 
+#> data:  .x[[i]] and mtcars$mpg
+#> t = -8.9, df = 30, p-value = 6e-10
+#> alternative hypothesis: true correlation is not equal to 0
+#> 95 percent confidence interval:
+#>  -0.9258 -0.7163
+#> sample estimates:
+#>     cor 
+#> -0.8522
+
+```
+
+If we want to use these results in a plot, the standard format of phypothesis test results are not very useful. The `tidy()` method can return this as a tibble with standardized names:
+
+```{r}
+
+library(broom)
+
+tidy(corr_res[[1]])
+
+#> # A tibble: 1 x 8
+#>   estimate statistic  p.value parameter conf.low conf.high method        alternative
+#>      <dbl>     <dbl>    <dbl>     <int>    <dbl>     <dbl> <chr>         <chr>      
+#> 1   -0.852     -8.92 6.11e-10        30   -0.926    -0.716 Pearson's pr… two.sided
+
+```
+
+These results can be "stacked" and added to a `ggplot()`:
+
+```{r}
+
+corr_res %>% 
+  # Convert each to a tidy format; `map_dfr()` stacks the data frames 
+  map_dfr(tidy, .id = "predictor") %>% 
+  ggplot(aes(x = fct_reorder(predictor, estimate))) + 
+  geom_point(aes(y = estimate)) + 
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = .1) +
+  labs(x = NULL, y = "Correlation with mpg")
+
+```
+
+
+
+### 3.4 Combing Base R Models and The Tidyverse
+
+1. R modeling functions from the core language or other R packages can be used in conjunction with the tidyverse, especially with `dplyr`, `purrr`, and `tidyr` packages. 
+
+a. Example: if we wanted to fit separate models for each cricket species, we can first break out the cricket data by this column using `dplyr::group_nest()`:
+
+```{r}
+
+split_by_species <- 
+  crickets %>% 
+  group_nest(species) 
+split_by_species
+
+#> # A tibble: 2 x 2
+#>   species                        data
+#> * <fct>            <list<tbl_df[,2]>>
+#> 1 O. exclamationis           [14 × 2]
+#> 2 O. niveus                  [17 × 2]
+
+```
+The `data` column contains the `rate` and `temp` columns from `crickets` in a `list` column. From this, the `purrr::map()` function can create individual models for each species:
+
+```{r}
+model_by_species <-
+  split_by_species %>%
+  mutate(model = map(data, ~lm(rate ~ temp, data = .x)))
+
+model_by_species
+
+#> # A tibble: 2 x 3
+#>   species                        data model 
+#> * <fct>            <list<tbl_df[,2]>> <list>
+#> 1 O. exclamationis           [14 × 2] <lm>  
+#> 2 O. niveus                  [17 × 2] <lm>
+```
+To collect the coefficients for each of these models, use `broom::tidy()` to convert them to a consistent data frame format so that you ca be unnested:
+
+```{r}
+
+model_by_species %>% 
+  mutate(coef = map(model, tidy)) %>% 
+  select(species, coef) %>% 
+  unnest(cols = c(coef))
+#> # A tibble: 4 x 6
+#>   species          term        estimate std.error statistic  p.value
+#>   <fct>            <chr>          <dbl>     <dbl>     <dbl>    <dbl>
+#> 1 O. exclamationis (Intercept)   -11.0      4.77      -2.32 3.90e- 2
+#> 2 O. exclamationis temp            3.75     0.184     20.4  1.10e-10
+#> 3 O. niveus        (Intercept)   -15.4      2.35      -6.56 9.07e- 6
+#> 4 O. niveus        temp            3.52     0.105     33.6  1.57e-15
+
+```
+2. List columns can be very powerful in modeling projects. List columns provide containers for any type of R objects, from a fitted model itself to the important data frame structure. 
+
+
+### 3.5 Chapter Summary
+
+1. This chapter reviewed core R language conventions for creating and using models. 
+
+2. The formula operator is an expressive and important aspect of fitting models in R and often serves multiple purposes in non-tidymodel functions. 
+
+3. Traditional R approaches to modeling have some limitations, especially when it comes to fluently handling and visualizing model output. 
