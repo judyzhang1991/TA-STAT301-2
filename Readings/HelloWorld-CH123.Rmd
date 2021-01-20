@@ -660,24 +660,26 @@ rate ~ (temp * species)^2 # a equivalent shortcut for expanding all interactions
 
 <3> Other niceties of the model formula:
 
-<a> Inline functions can be used in the formula:
+_a_ Inline functions can be used in the formula:
 
 * `rate ~ log(temp)`
 
 * `rate ~ I((temp * 9/5) + 32)` the identity function `I()` applies literal math to the predictors.
 
-<b> R has many functions that are useful inside of formulas. 
+_b_ R has many functions that are useful inside of formulas. 
 
 * `poly(x, 3)` creates linear, quardratic and cubic terms for `x` to the model as main effects. 
 
 * The `splines` package also has functions to create nonlinear spline terms in the formula. 
 
-<c> For data sets where there are many predictors, the period shortcut is available. The period represents main effects for all of the columns that are not on the left-hand side of the tilde. 
+_c_ For data sets where there are many predictors, the period shortcut is available. The period represents main effects for all of the columns that are not on the left-hand side of the tilde. 
 
 * `~ (.)^3` creates main effects as well as all two- and three- variables interactions to the model. 
 
 
-(2) Fit a two-way interaction model to chirping crikets:
+(2) Fit a two-way interaction model to chirping crickets:
+
+
 
 ```{r}
 
