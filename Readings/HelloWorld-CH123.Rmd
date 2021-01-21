@@ -124,9 +124,22 @@ c. Objectives: pattern/structure recognition
 
 a. Examples: Regression (divde the ties by length), Neural Networks, classification (divide the socks by color)
 
+*Linear Regression*
+- Regression (continuous outcome)
+- Mechanistic: mechanistic models mean that the data should meet the assumptions the model makes. These are models that are not very responsible to data, they lean heavily to certain assumptions. 
+* Assumptions for linear regression: linearity, normality, homoscedasticity (errors generally the same across the line).
+- Possible goals: 
+* predictive
+* descriptive
+* inferential (sometimes): how data is generated allows it to be inferential - the data should be randomly generated: random sampling or random assignment
+- Perform measures
+* RSE (residual standard error)
+* $R^2$: how much of the variation/signal of the output (Y) is explained by the model.
+* MSE (mean squared error)
+
 b. With supervised models, there are two main sub-categories:
 
-(1) Regression: predicts a numeric outcome.
+(1) Regression: predicts a numeric/continuous outcome.
 
 (2) Classification: predicts an outcome that is an ordered or unordered set of qualitative values.
 

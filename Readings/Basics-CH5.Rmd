@@ -1,0 +1,206 @@
+---
+title: "Basics - CH5"
+author: Jingyang(Judy) Zhang
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+# Basics
+## CHAPTER 5 Spending Our Data
+
+```{r}
+library(modeldata) # This is also loaded by the tidymodels package
+data(ames)
+
+# or, in one line:
+data(ames, package = "modeldata")
+
+dim(ames)
+#> [1] 2930   74
+```
+
+
+1. There are several steps to create a useful model, including parameter estimation, model selection and tuning, and performance assessment. 
+
+a. The idea of data spending is an important first consideration when modeling, especially as it relates to empirical validation. 
+
+b. When thereare copious amounts of data available, allocate specific subsets of data for different tasks, as opposed to allocating the largest possible amount to the model parameter estimation only. 
+
+c. As data are reused for multiple tasks, certain risks increase, such as the risks of adding bias or large effects from methodlogical errors. 
+
+
+
+### 5.1 Common Methods for Splitting Data
+
+1. The primary approach for empirical model validation is to split the existing pool of data into two distjoint sets. 
+
+a. Some observations are used to developand optimize the model. This `training` set is usually the majority of the data. 
+
+(1) These data are a sandbox for model building where different models cna be fit, feature engineering strategies are investigated, and so on. 
+
+b. The other portion of the observations are placed into the `test` set. This is held in reserve until one or two models are chosen as the methods that are most likely to succeed. 
+
+(1) The test set is then used as the final arbiter to determine the efficacy of the model. It is critical to only look at the test set once; otherwise it becomes part of the modeling process. 
+
+2. How should we conduct this split of the data? This depends on the context.
+
+*Random Sample*
+
+a. The most common method is to use *simple random sampling*. The `rsample` package has tools for making data splits such as to 80% and 20%:
+
+(1) The function `initial_split()` was created to take the data frame as an argument as well as the proportion to be placed into training. 
+
+
+```{r}
+library(rsample)
+# Set the random number stream using `set.seed()` so that the results can be 
+# reproduced later. 
+set.seed(123)
+
+# Save the split information for an 80/20 split of the data
+ames_split <- initial_split(ames, prob = 0.80)
+ames_split
+#> <Analysis(Training set)/Assess(Test set)/Total>
+#> <2198/732/2930>
+
+```
+
+
+THe object `ames_split` is an `rsplit` object and only contains the partitioning information.
+
+(2) To get the partitioned data sets, apply functions `trainin()` and `testing()` to the `rsplit` object:
+
+```{r}
+
+ames_train <- training(ames_split)
+ames_test  <-  testing(ames_split)
+
+dim(ames_train)
+#> [1] 2198   74
+
+```
+
+These objects (`ames_train` and `ames_test`) are data frames with the same columns as the original data but only the appropriate rows for each set. 
+
+
+(3) Simple random sampling is appropriate in many cases but there are exceptions:
+
+(a) Class Imbalance: when there is a dramatic class imbalance in classification problems, one class occurs much less frequently than another. Using a simple random sampling may haphazardly allocate these infrequent samples disproportionately into the training and test set. 
+
+<1> Solution to Dramatic Class Imbalance: *stratified sampling* - the training/test split is conducted separately within each class and then these subsamples are combined into the overall training and test set. 
+
+_a_ Example: for regression problems, the outcome data can be artificially binned into quartiles and then stratified sampling conducted four separate times. This is an effective method for keeping the distributions of the outcome siilar between the training and test set. 
+
+_b_ Example: Ames Data as the sale price distribution is right-skewed, with proportionally less expensive houses so the worrywould be that expensive houses would not be represented in the training/test set. 
+
+A stratified random sample would conduct the 80/20 split within each of these data subsets and then pool the results together. In `rsample`, this is achieved using the `strata` argument:
+
+```{r}
+
+set.seed(123)
+ames_split <- initial_split(ames, prob = 0.80, strata = Sale_Price)
+ames_train <- training(ames_split)
+ames_test  <-  testing(ames_split)
+
+dim(ames_train)
+#> [1] 2199   74
+
+```
+Note1: only a single column can be used for stratification.
+
+Note2: There is very little downside to using stratified sampling. 
+
+*Non-random Sample*
+a. There are situations when random sampling is not the best choice: one case is the data have a significant time component, such as time series data. 
+
+(1) Use most recent data as the test set: the `rsample` package contains a function called `initial_time_split()` that is very similar to `initial_split()`.
+
+(a) Instead of using random sampling, the `prop` argument denotes what proportion of the first part of the data should be used as the training set
+
+(b) The function `initial_time_split()` assumes that the data have been pre-sorted in an appropriate order. 
+
+
+### 5.2 What Proportion Should be Used?
+
+1. The amount of data that should be allocated when splitting the data is highly dependent on the context of the problem at hand. 
+
+a. Too much data in the training set lowers the quality of the performance estiamtes. 
+
+b. Too much data in the test set handicaps the model's ability to find appropriate parameter estiamtes. 
+
+c. A test set should be avoided only when the data are pathologically small. 
+
+
+### 5.3 What About A Validation Set?
+
+1. The *validation* set was originally defined in the early days of the neural networks when researchers realize that measuring performance by re-predicting the training set samples led to results that were overly optimistic (significantlly, unrealistically so).
+
+a. This led to models that *overfit*, meaning that they performed very well on the training set but poorly on the test set. 
+
+b. To combat over-fitting, a small validation set of data were held back and used to measure performance as the network was trained. 
+
+(1) Once the validation set error rate began to rise, the training would be halted. The validation set was a means to get a rough sense of how well the model performed prior to the test set. 
+
+2. It is largely semantics as to whether validation sets are a subset of the training set or a third allocation in the intial split of the data. 
+
+
+
+### 5.4 Multi-level Data
+
+1. *Independent Experimental Unit*
+
+a. It is safe to assume that, statistically, the data from a property are independent. 
+
+b. For other applications, that is not always the case:
+
+(1) For longitudinal data, the same independent experimental unit can be measured over multiple time points. 
+
+(2) A batch of manufactured product might also be considered the independent experimental unit. In repeated measures designs, replicate data points from a batch are collected. 
+
+(3) Johnson et al. (2018) report an experiment where different trees were sampled across the top and bottom portions of a stem. Here, the tree is the experimental unit and the data hierarchy is sample within stem positions within tree. 
+
+c. In these situations, the data set will have multiple rows per experimental unit. Simple resampling across rows would lead to some data within an epxerimental unit being in the training set and others in the test set. 
+
+2. Data splitting should occur at the independent experimental unit level of the data. 
+
+a. Example: for example, to produce an 80/20 split of the data, 80% of the experimental units should be allocated for the training set. 
+
+
+### 5.5 Other Considerations
+
+1. Notice which data are exposed to the model at any given time. 
+
+a. It is critical to quarantine the test set from any model building activities. 
+
+b. *Information Leakage*: the problem of information leakage occurs when data outside the training set are used in the modeling process. 
+
+2. Test data might be provided without the true outcome values so that the model can be scored and ranked. 
+
+a. Fit the model using the training set points that are most similar to the test set values: this is problematic since it reduces the *generalization error* of the model to optimize performance on a specific data. 
+
+b. There are more subtle ways that the test data can be utilized during training. 
+
+2. It is critical that the test set continue to mirror what the model would encounter in the wild. In other words, the test set should always resemble new data that will be given to the model. 
+
+
+### 5.6 Chapter Summary
+
+1. Data splitting is the fundamental tool for empirical validation of models. Even in the era of unrestrained data collection, a typical modeling project has a limited amount of appropriate data and wise "spending" of a project's data is necessary. 
+
+2. Importnat code snippets:
+
+```{r}
+
+library(tidymodels)
+data(ames)
+ames <- ames %>% mutate(Sale_Price = log10(Sale_Price))
+
+set.seed(123)
+ames_split <- initial_split(ames, prob = 0.80, strata = Sale_Price)
+ames_train <- training(ames_split)
+ames_test  <-  testing(ames_split)
+
+```
+
