@@ -30,7 +30,8 @@ b. When thereare copious amounts of data available, allocate specific subsets of
 
 c. As data are reused for multiple tasks, certain risks increase, such as the risks of adding bias or large effects from methodlogical errors. 
 
-
+__Must split data first! Do not look at the whole data set!__
+1. EDA should be performed AFTER splitting the data. 
 
 ### 5.1 Common Methods for Splitting Data
 
@@ -89,7 +90,7 @@ These objects (`ames_train` and `ames_test`) are data frames with the same colum
 
 (a) Class Imbalance: when there is a dramatic class imbalance in classification problems, one class occurs much less frequently than another. Using a simple random sampling may haphazardly allocate these infrequent samples disproportionately into the training and test set. 
 
-<1> Solution to Dramatic Class Imbalance: *stratified sampling* - the training/test split is conducted separately within each class and then these subsamples are combined into the overall training and test set. 
+<1> Solution to Dramatic Class Imbalance: *stratified sampling* - the training/test split is conducted separately within each class and then these subsamples are combined into the overall training and test set.Stratification ensures that there is at least one sample from each stratum.  
 
 _a_ Example: for regression problems, the outcome data can be artificially binned into quartiles and then stratified sampling conducted four separate times. This is an effective method for keeping the distributions of the outcome siilar between the training and test set. 
 
@@ -110,7 +111,9 @@ dim(ames_train)
 ```
 Note1: only a single column can be used for stratification.
 
-Note2: There is very little downside to using stratified sampling. 
+Note2: __There is very little downside to using stratified sampling.__
+
+
 
 *Non-random Sample*
 a. There are situations when random sampling is not the best choice: one case is the data have a significant time component, such as time series data. 
