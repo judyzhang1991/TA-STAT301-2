@@ -15,6 +15,8 @@ library(tidymodels)
 # Basics
 ## CHAPTER 6 Feature Engineering with Recipes
 
+*Goal of Feature Engineering:* develop a protocol or operation that we can maximize the information.
+
 1. Feature engineering encompasses activities that reformat predictor values to make them easier for a model to use effectively. 
 
 a. This includes transformations and encoding of the data to best represent their important characteristics. 
@@ -583,10 +585,262 @@ a. Recipe steps can affect the rows of a data set as well.
 
 (1) Example: subsampling technique for class imbalances will change the data being given to the model. There are several possible approaches to try:
 
-Downsampling the data keeps the minority class and takes a random sample of the majority class so that class frequencies are balanced.
+(a) Down-sampling the data keeps the minority class and takes a random sample of the majority class so that class frequencies are balanced.
 
-Upsampling replicates samples from the minority class to balance the classes. Some techniques do this by synthesizing new samples that resemble the minority class data while other methods simply add the same minority samples repeatedly.
+(b) Upsampling replicates samples from the minority class to balance the classes. Some techniques do this by synthesizing new samples that resemble the minority class data while other methods simply add the same minority samples repeatedly.
 
-Hybrid methods do a combination of both.
+(c) Hybrid methods do a combination of both.
 
-The themis package has recipe steps the can be used for this purpose. For simple down-sampling, we would use:
+The `themis` package has recipe steps the can be used for this purpose. For simple down-sampling, we would use:
+
+```{r eval = FALSE}
+
+step_downsample(outcome_column_name)
+
+```
+
+
+Note: Only the training set should be affected by these techniques. The test set or other holdout samples should be left as-is when processed using the recipe. For this reason, all of the subsampling steps default the skip argument to have a value of TRUE (Section 6.5).
+
+(2) There are other step functions that are row-based as well: `step_filter()`, 
+
+`step_sample()`, 
+
+`step_slice()`,
+
+`step_arrange()`
+
+(a) In almost all uses of these steps, the skip argument should be set to `TRUE`.
+
+
+4. *General Transformations*
+
+a. Mirroring the original `dplyr` operations, `step_mutate()` and `step_mutate_at()` can be used to conduct a variety of basic operations to the data.
+
+
+5. *Natural Language Processing*
+
+a. Recipes can also handle data that are not in the traditional structure where the columns are features. 
+
+(1) Example: the `textrecipes` package can apply natural language processing methods to the data. The input column is typically a string of text and different steps can be used to tokenize the data (e.g., split the text into separate words), filter out tokens, and create new features appropriate for modeling.
+
+
+
+### 6.7 How Data Are Used By The Recipe
+
+1. Data are given to recipes at different stages. 
+
+a. When calling `recipe(..., data)`, the data set is used to determine the data types of each column so that selectors such as `all_numeric()` can be used. 
+
+b. When preparing the data using `prep(recipe, training)`, the data in training are used for all estimation operations, from determining factor levels to computing PCA components and everything in between. 
+
+(1) It is important to realize that all preprocessing and feature engineering steps only utilize the training data. Otherwise, information leakage can negatively impact the model.
+
+c. When using `bake(recipe, new_data)`, no quantities are re-estimated using the values in new_data. 
+
+(1) Take centering and scaling using `step_normalize()`.
+
+(a) Example: using this step, the means and standard deviations from the appropriate columns are determined from the training set; new samples are standardized using these values when `bake()` is invoked.
+
+
+### 6.8 Using a Recipe with Traditional Modeling Functions
+
+1. High-level interfaces that take a recipe as an input argument and automatically handle the `prep()`/`bake()` process of preparing data for modeling. However, recipes can be used with traditional R modeling functions as well.
+
+a. Example: a slightly augmented version of the last recipe, now including longitude.
+
+```{r eval = FALSE}
+
+ames_rec <- 
+  recipe(Sale_Price ~ Neighborhood + Gr_Liv_Area + Year_Built + Bldg_Type + 
+           Latitude + Longitude, data = ames_train) %>%
+  step_log(Gr_Liv_Area, base = 10) %>% 
+  step_other(Neighborhood, threshold = 0.01) %>% 
+  step_dummy(all_nominal()) %>% 
+  step_interact( ~ Gr_Liv_Area:starts_with("Bldg_Type_") ) %>% 
+  step_ns(Latitude, Longitude, deg_free = 20)
+
+```
+
+
+* To get the recipe ready, we prepare it, and then extract the training set using `bake()` with `new_data = NULL`. When calling `prep()`, if the training argument is not given, it uses the data that was initially given to the `recipe()` function call.
+
+```{r eval = FALSE}
+
+ames_rec_prepped <- prep(ames_rec)
+ames_train_prepped <- bake(ames_rec_prepped, new_data = NULL)
+ames_test_prepped <- bake(ames_rec_prepped, ames_test)
+
+# Fit the model; Note that the column Sale_Price has already been
+# log transformed.
+lm_fit <- lm(Sale_Price ~ ., data = ames_train_prepped)
+
+```
+
+
+* The `broom` package has methods that make it easier to work with model objects. First, `broom::glance()` shows a succinct summary of the model in a handy tibble format:
+
+```{r eval = FALSE}
+
+glance(lm_fit)
+#> # A tibble: 1 x 12
+#>   r.squared adj.r.squared  sigma statistic p.value    df logLik    AIC    BIC
+#>       <dbl>         <dbl>  <dbl>     <dbl>   <dbl> <dbl>  <dbl>  <dbl>  <dbl>
+#> 1     0.822         0.816 0.0757      140.       0    70  2592. -5040. -4630.
+#> # … with 3 more variables: deviance <dbl>, df.residual <int>, nobs <int>
+
+```
+
+
+* The model coefficients can be extracted using the `tidy()` method:
+
+```{r eval = FALSE}
+tidy(lm_fit)
+#> # A tibble: 71 x 5
+#>   term                       estimate std.error statistic   p.value
+#>   <chr>                         <dbl>     <dbl>     <dbl>     <dbl>
+#> 1 (Intercept)                -0.531    0.296        -1.79 7.32e-  2
+#> 2 Gr_Liv_Area                 0.648    0.0161       40.3  1.46e-264
+#> 3 Year_Built                  0.00194  0.000139     13.9  2.69e- 42
+#> 4 Neighborhood_College_Creek -0.0898   0.0332       -2.71 6.83e-  3
+#> 5 Neighborhood_Old_Town      -0.0516   0.0129       -4.01 6.20e-  5
+#> 6 Neighborhood_Edwards       -0.153    0.0274       -5.57 2.91e-  8
+#> # … with 65 more rows
+```
+
+* To make predictions on the test set, we use the standard syntax:
+
+```{r eval = FALSE}
+
+predict(lm_fit, ames_test_prepped %>% head())
+#>     1     2     3     4     5     6 
+#> 5.308 5.301 5.168 5.519 5.088 5.489
+
+```
+
+
+
+### 6.9 Tidy A Recipe
+
+1. In Section 3.3, we introduced the `tidy()` verb for statistical objects; 
+
+In Section 6.8, we showed how to `tidy() a model.
+
+In section 6.9, we will show `tidy()` method for recipes: calling it with no other arguments gives a summary of the recipe steps.
+
+```{r eval = FALSE}
+
+tidy(ames_rec_prepped)
+#> # A tibble: 5 x 6
+#>   number operation type     trained skip  id            
+#>    <int> <chr>     <chr>    <lgl>   <lgl> <chr>         
+#> 1      1 step      log      TRUE    FALSE log_Zpjfz     
+#> 2      2 step      other    TRUE    FALSE other_qHT9d   
+#> 3      3 step      dummy    TRUE    FALSE dummy_3SK4C   
+#> 4      4 step      interact TRUE    FALSE interact_gyWyl
+#> 5      5 step      ns       TRUE    FALSE ns_qG7ic
+
+```
+
+We can specify the id field in a step function call but otherwise it is generated using a random suffix. This field can be helpful if the same type of step is added to the recipe more than once. Let’s specify the id ahead of time for `step_log()`, since we want to `tidy()` it:
+
+```{r eval = FALSE}
+
+ames_rec <- 
+  recipe(Sale_Price ~ Neighborhood + Gr_Liv_Area + Year_Built + Bldg_Type + 
+           Latitude + Longitude, data = ames_train) %>%
+  step_log(Gr_Liv_Area, base = 10, id = "my_id") %>% 
+  step_other(Neighborhood, threshold = 0.01) %>% 
+  step_dummy(all_nominal()) %>% 
+  step_interact( ~ Gr_Liv_Area:starts_with("Bldg_Type_") ) %>% 
+  step_ns(Latitude, Longitude, deg_free = 20)
+
+ames_rec_prepped <- prep(ames_rec)
+
+```
+
+
+* The `tidy()` method can be called again along with the id identifier we specified to get these results:
+
+```{r eval = FALSE}
+
+tidy(ames_rec_prepped, id = "my_id")
+#> # A tibble: 1 x 3
+#>   terms        base id   
+#>   <chr>       <dbl> <chr>
+#> 1 Gr_Liv_Area    10 my_id
+
+```
+
+
+* The `tidy()` method can be called with the number identifier as well, if we know which step in the recipe we need:
+
+```{r eval = FALSE}
+
+tidy(ames_rec_prepped, number = 2)
+#> # A tibble: 20 x 3
+#>   terms        retained           id         
+#>   <chr>        <chr>              <chr>      
+#> 1 Neighborhood North_Ames         other_6Nta6
+#> 2 Neighborhood College_Creek      other_6Nta6
+#> 3 Neighborhood Old_Town           other_6Nta6
+#> 4 Neighborhood Edwards            other_6Nta6
+#> 5 Neighborhood Somerset           other_6Nta6
+#> 6 Neighborhood Northridge_Heights other_6Nta6
+#> # … with 14 more rows
+
+```
+
+
+* Each `tidy()` method returns the relevant information about that step. For example, the `tidy()` method for `step_dummy()` returns a column with the variables that were converted to dummy variables and another column with all of the known levels for each column.
+
+
+### 6.10 Column Roles
+
+1. When a formula is used with the initial call to `recipe()` it assigns roles to each of the columns depending on which side of the tilde that they are on. Those roles are either "predictor" or "outcome". However, other roles can be assigned as needed.
+
+a. Example: in our Ames data set, the original raw data contained a field for address. It may be useful to keep that column in the data so that, after predictions are made, problematic results can be investigated in detail. In other words, the column is important but isn’t a predictor or outcome.
+
+b. To solve this, the `add_role()`, `remove_role()`, and `update_role()` functions can be helpful. 
+
+(1) Example: for the house price data, the street address column could be modified using
+
+```{r eval = FALSE}
+
+ames_rec %>% update_role(address, new_role = "street address")
+
+```
+
+
+
+2. Any character string can be used as a role. 
+
+3. columns can have multiple roles so that they can be selected under more than one context.
+
+4. This can be helpful when the data are _resampled_. It helps to keep the columns that are not involved with the model fit in the same data frame (rather than in an external vector). 
+
+a. Resampling creates alternate versions of the data mostly by row subsampling. If the street address were in another column, additional subsampling would be required and might lead to more complex code and a higher likelihood of errors.
+
+5. All step functions have a role field that can assign roles to the results of the step. 
+
+a. In many cases, columns affected by a step retain their existing role.
+
+(1) Example: the `step_log()` calls to the `ames_rec` object above affected the `Gr_Liv_Area` column. For that step, the default behavior is to keep the existing role for this column since no new column is created. 
+
+(2) Counter-example, the step to produce splines defaults new columns to have a role of "predictor" since that is usually how spline columns are used in a model. 
+
+
+### 6.11 Chapter Summary
+
+
+1. Using recipes for flexible feature engineering and data pre-processing, from creating dummy variables to handling class imbalance and more.
+
+2. Feature engineering is an important part of the modeling process where information leakage can easily occur and good practices must be adopted. 
+
+3. Between the `recipes` package and other packages that extend recipes, there are over 100 available steps. 
+
+a. All possible recipe steps are enumerated at tidymodels.org/find. 
+
+b. The recipes framework provides a rich data manipulation environment for preprocessing and transforming data prior to modeling. 
+
+c. Additionally, tidymodels.org/learn/develop/recipes/ shows how custom steps can be created.
