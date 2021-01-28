@@ -79,6 +79,17 @@ b. While tree-based boosting methods generally do not require the creation of du
 
 ### 6.1 A Simple Recipe for the AMES Housing Data
 
+
+*Cooking with R:*:
+
+1. Get the ingredients (`recipe()`): specify the response variable and predictor variables.
+
+2. Write the recipe (`step_zzz()`): define the pre-processing steps, such as imputation, creating dummy variables, scaling and more.
+
+3. Prepare the recipe ('prep()'): provide a dataset to base each step on (e.g. )
+
+4. Bake the recipe (`bake()`): apply the pre-processing steps to the dataset. 
+
 1. Focus on a small subset of the predictors available in the Ames housing data:
 
 * The neighborhood (qualitative, with 29 neighborhoods in the training set)
@@ -310,7 +321,9 @@ b. Example: For dummy variables, the single `Bldg_Type` column would be replaced
 
 ![](Fig6.3Dummy.PNG)
 
-c. The full set of encodings can be used for some models. This is traditionally called the “one-hot” encoding and can be achieved using the `one_hot` argument of `step_dummy()`.
+c. The full set of encodings can be used for some models. This is traditionally called the “one-hot” encoding and can be achieved using the `one_hot` argument of `step_dummy()`. That is if you have 10 levels, create 10 dummy variables. It keeps all the yes/no questions. 
+
+(1) This will make a difference in some algorithms such as trees. 
 
 d. One helpful feature of `step_dummy()` is that there is more control over how the resulting dummy variables are named.
 
@@ -538,7 +551,7 @@ recipe(Sale_Price ~ Neighborhood + Gr_Liv_Area + Year_Built + Bldg_Type + Latitu
 
 
 
-2. *Feature Extraction*
+2. *Feature Extraction*: PCA, reduce the number of predictors.
 
 a. Another common method for representing multiple features at once is called feature extraction. 
 
