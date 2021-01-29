@@ -1,0 +1,20 @@
+---
+title: "Basics - CH9"
+author: Jingyang(Judy) Zhang
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Basics
+## CHAPTER 9 Judging Model Effectiveness
+
+### 9.1 Performance Metrics and Inference
+
+### 9.2 Regression Metrics
+
+### 9.3 Binary Classification Metrics
+
+### 9.4 Multi-class Classification Metrics
+
+### 9.5 Chapter Summary

@@ -1,0 +1,21 @@
+---
+title: "Basics - CH8"
+author: Jingyang(Judy) Zhang
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Basics
+## CHAPTER 8 A Model Workflow
+
+### 8.1 Where Does a Model Begin and End?
+
+### 8.2 Workflow Basics
+
+### 8.3 How Does a Workflow Use the Formula?
+
+### 8.4 Future Plans
+
+### 8.5 Chapter Summary
+

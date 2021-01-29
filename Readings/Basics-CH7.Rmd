@@ -1,0 +1,21 @@
+---
+title: "Basics - CH7"
+author: Jingyang(Judy) Zhang
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Basics
+## CHAPTER 7 Fitting Models with Parsnip
+
+### 7.1 Create a Model
+
+### 7.2 Use the Model Results
+
+### 7.3 Make Predictions
+
+### 7.4 Parsnip-adjacent Packages
+
+### 7.5 Chapter Summary
+
