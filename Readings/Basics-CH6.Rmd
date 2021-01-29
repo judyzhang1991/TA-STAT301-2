@@ -51,7 +51,6 @@ a. The preprocessing methods are categorized as:
 *decorrelate*: If there are correlated predictors, should this correlation be mitigated? This might mean filtering out predictors, using principal component analysis, or a model-based technique (e.g. regularization).
 
 
-
 *normalize*: Should predictors be centered and scaled?
 
 *transform*: Is it helpful to transform predictors to be more symmetric?
@@ -80,15 +79,17 @@ b. While tree-based boosting methods generally do not require the creation of du
 ### 6.1 A Simple Recipe for the AMES Housing Data
 
 
-*Cooking with R:*:
+*Class Notes: Cooking with R:*:
 
-1. Get the ingredients (`recipe()`): specify the response variable and predictor variables.
+1. Get the ingredients (`recipe()`): specify the response variable and predictor variables. `recipe(y~a+b+..., data = pantry)`.
 
-2. Write the recipe (`step_zzz()`): define the pre-processing steps, such as imputation, creating dummy variables, scaling and more.
+2. Write the recipe (`step_*()`): define the pre-processing steps, such as imputation, creating dummy variables, scaling and more.
 
-3. Prepare the recipe ('prep()'): provide a dataset to base each step on (e.g. )
+3. Prepare the recipe (`prep()`): provide a dataset to base each step on (e.g. if one of the steps is to remove variables that only have one unique value, then you need to give it a dataset so it can decide which variables satisfy this criteria to ensure that it is doing the same thing to every dataset you apply it to).
 
 4. Bake the recipe (`bake()`): apply the pre-processing steps to the dataset. 
+
+*---*
 
 1. Focus on a small subset of the predictors available in the Ames housing data:
 
