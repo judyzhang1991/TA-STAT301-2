@@ -1765,11 +1765,358 @@ summary {
 <h1>Basics</h1>
 <div id="chapter-7-fitting-models-with-parsnip" class="section level2">
 <h2>CHAPTER 7 Fitting Models with Parsnip</h2>
+<ol style="list-style-type: decimal">
+<li>The <code>parsnip</code> package provides a fluent and standard interface for a variety of different models.</li>
+</ol>
 <div id="create-a-model" class="section level3">
 <h3>7.1 Create a Model</h3>
+<ol style="list-style-type: decimal">
+<li>Once the data have been encoded in a format ready for a modeling algorithm, such as a numeric matrix, they can be used in the model building process.</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>A linear regression model is equivalent to: specify the outcome data as numeric, the predictors are related to the model in terms of simple slopes and intercepts:</li>
+</ol>
+<p><span class="math inline">\(y_{i} = \beta_{0} + \beta_{1}x_{1i} + ... +\beta_{p}x_{pi}\)</span></p>
+<ol style="list-style-type: decimal">
+<li>Methods to estimate the model parameters:</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Ordinary linear regression: uses the traditional method of least squares to solve for the model parameters.</li>
+</ol>
+<p>&lt;1&gt; The <code>stats</code> package can be used for the linear regression model case. The syntax for <code>lm()</code> is:</p>
+<p><code>model &lt;- lm(formula, data, ...)</code></p>
+<ul>
+<li><p><code>...</code> symbolizes other options to pass to <code>lm()</code>.</p></li>
+<li><p>The function does not have an <code>x/y</code> interface where we might pass in our outcome as <code>y</code> and our predictor <code>x</code>.</p></li>
+</ul>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>Regularized linear regression: adds a penalty to the least squares method to encourage simplicity by removing predictors and/or shrinking their coefficients towards zero. This can be executed using Bayesian or non-Bayesian techniques.</li>
+</ol>
+<p>&lt;1&gt; To estimate with regularization, a Bayesian model can be fit using the <code>rstanarm</code> package:</p>
+<p><code>model &lt;- stan_glm(formula, data, family = &quot;gaussian&quot;, ...)</code></p>
+<ul>
+<li><p>The other options passed via <code>...</code> would include arguments for the <em>prior distributions</em> of the parameters as well as specifics about the numerical aspects of the model.</p></li>
+<li><p>As with <code>lm()</code>, only the formula interface is available.</p></li>
+</ul>
+<p>&lt;2&gt; A popular non-Bayesian approach to regularize regression is the glmnet model:</p>
+<p><code>model &lt;- glmnet(x = matrix, y = vector, family = &quot;gaussian&quot;, ...)</code></p>
+<ul>
+<li>In this case, the predictor data must already be formatted into a numeric matrix; there is only an <code>x/y</code> method and no formjla method.</li>
+</ul>
+<p><em>Note:</em></p>
+<ul>
+<li><p>These interfaces are heterogeneous in either how the data are passed to the model function or in terms of their arguments:</p></li>
+<li><p>To fit models across different packages, the data must be formatted in different ways. <code>lm()</code> and <code>stan_glm()</code> only have formula interfaces while <code>glmnet()</code> does not. For other types of models, the interfaces may be even more disparate.</p></li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>For tidymodels, the approach to specifying a model is intended to be more unified:</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li><p><em>Specify the type of model based on its mathematical structure</em>: e.g., linear regression, random forest, K-nearest neighbors, etc.</p></li>
+<li><p><em>Specify the engine for fitting the model</em>: most often this reflects the software package that should be used.</p></li>
+<li><p><em>When required, declare the mode of the model</em>: the mode reflects the type of prediction outcome.</p></li>
+</ol>
+<ol style="list-style-type: decimal">
+<li><p>For numeric outcomes: the mode is <em>regression</em>;</p></li>
+<li><p>For qualitative outcomes: the mode is <em>classification</em>.</p></li>
+</ol>
+<p>If a model can only create one type of model, such as linear regression, the mode is already set.</p>
+<ol start="4" style="list-style-type: lower-alpha">
+<li>These specifications are built without referencing the data.</li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxpbmVhcl9yZWcoKSAlPiUgc2V0X2VuZ2luZShcImxtXCIpIiwiIz4gTGluZWFyIFJlZ3Jlc3Npb24gTW9kZWwgU3BlY2lmaWNhdGlvbiAocmVncmVzc2lvbikiLCIjPiAiLCIjPiBDb21wdXRhdGlvbmFsIGVuZ2luZTogbG0iLCIiLCJsaW5lYXJfcmVnKCkgJT4lIHNldF9lbmdpbmUoXCJnbG1uZXRcIikgIiwiIz4gTGluZWFyIFJlZ3Jlc3Npb24gTW9kZWwgU3BlY2lmaWNhdGlvbiAocmVncmVzc2lvbikiLCIjPiAiLCIjPiBDb21wdXRhdGlvbmFsIGVuZ2luZTogZ2xtbmV0IiwiIiwibGluZWFyX3JlZygpICU+JSBzZXRfZW5naW5lKFwic3RhblwiKSIsIiM+IExpbmVhciBSZWdyZXNzaW9uIE1vZGVsIFNwZWNpZmljYXRpb24gKHJlZ3Jlc3Npb24pIiwiIz4gIiwiIz4gQ29tcHV0YXRpb25hbCBlbmdpbmU6IHN0YW4iXX0= -->
+<pre class="r"><code>linear_reg() %&gt;% set_engine(&quot;lm&quot;)
+#&gt; Linear Regression Model Specification (regression)
+#&gt; 
+#&gt; Computational engine: lm
+
+linear_reg() %&gt;% set_engine(&quot;glmnet&quot;) 
+#&gt; Linear Regression Model Specification (regression)
+#&gt; 
+#&gt; Computational engine: glmnet
+
+linear_reg() %&gt;% set_engine(&quot;stan&quot;)
+#&gt; Linear Regression Model Specification (regression)
+#&gt; 
+#&gt; Computational engine: stan</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<ol start="3" style="list-style-type: decimal">
+<li>Once the details of the model have been specified, the model estimation can be done with either the <code>fit()</code> function (to use a formula) or the <code>fit_xy()</code> function (when your data are already pre-processed).</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li><p>The <code>parsnip</code> package allows the user to be indifferent to the interface of the underlying model; you can always use a formula even if the modeling package’s function only has the <code>x/y</code> interface.</p></li>
+<li><p>The <code>translate()</code> function can provide details on how parsnip converts the user’s code to the package’s syntax:</p></li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxpbmVhcl9yZWcoKSAlPiUgc2V0X2VuZ2luZShcImxtXCIpICU+JSB0cmFuc2xhdGUoKSIsIiM+IExpbmVhciBSZWdyZXNzaW9uIE1vZGVsIFNwZWNpZmljYXRpb24gKHJlZ3Jlc3Npb24pIiwiIz4gIiwiIz4gQ29tcHV0YXRpb25hbCBlbmdpbmU6IGxtICIsIiM+ICIsIiM+IE1vZGVsIGZpdCB0ZW1wbGF0ZToiLCIjPiBzdGF0czo6bG0oZm9ybXVsYSA9IG1pc3NpbmdfYXJnKCksIGRhdGEgPSBtaXNzaW5nX2FyZygpLCB3ZWlnaHRzID0gbWlzc2luZ19hcmcoKSkiLCIiLCJsaW5lYXJfcmVnKCkgJT4lIHNldF9lbmdpbmUoXCJnbG1uZXRcIikgJT4lIHRyYW5zbGF0ZSgpIiwiIz4gTGluZWFyIFJlZ3Jlc3Npb24gTW9kZWwgU3BlY2lmaWNhdGlvbiAocmVncmVzc2lvbikiLCIjPiAiLCIjPiBDb21wdXRhdGlvbmFsIGVuZ2luZTogZ2xtbmV0ICIsIiM+ICIsIiM+IE1vZGVsIGZpdCB0ZW1wbGF0ZToiLCIjPiBnbG1uZXQ6OmdsbW5ldCh4ID0gbWlzc2luZ19hcmcoKSwgeSA9IG1pc3NpbmdfYXJnKCksIHdlaWdodHMgPSBtaXNzaW5nX2FyZygpLCAiLCIjPiAgICAgZmFtaWx5ID0gXCJnYXVzc2lhblwiKSIsIiIsImxpbmVhcl9yZWcoKSAlPiUgc2V0X2VuZ2luZShcInN0YW5cIikgJT4lIHRyYW5zbGF0ZSgpIiwiIz4gTGluZWFyIFJlZ3Jlc3Npb24gTW9kZWwgU3BlY2lmaWNhdGlvbiAocmVncmVzc2lvbikiLCIjPiAiLCIjPiBDb21wdXRhdGlvbmFsIGVuZ2luZTogc3RhbiAiLCIjPiAiLCIjPiBNb2RlbCBmaXQgdGVtcGxhdGU6IiwiIz4gcnN0YW5hcm06OnN0YW5fZ2xtKGZvcm11bGEgPSBtaXNzaW5nX2FyZygpLCBkYXRhID0gbWlzc2luZ19hcmcoKSwgIiwiIz4gICAgIHdlaWdodHMgPSBtaXNzaW5nX2FyZygpLCBmYW1pbHkgPSBzdGF0czo6Z2F1c3NpYW4sIHJlZnJlc2ggPSAwKSJdfQ== -->
+<pre class="r"><code>linear_reg() %&gt;% set_engine(&quot;lm&quot;) %&gt;% translate()
+#&gt; Linear Regression Model Specification (regression)
+#&gt; 
+#&gt; Computational engine: lm 
+#&gt; 
+#&gt; Model fit template:
+#&gt; stats::lm(formula = missing_arg(), data = missing_arg(), weights = missing_arg())
+
+linear_reg() %&gt;% set_engine(&quot;glmnet&quot;) %&gt;% translate()
+#&gt; Linear Regression Model Specification (regression)
+#&gt; 
+#&gt; Computational engine: glmnet 
+#&gt; 
+#&gt; Model fit template:
+#&gt; glmnet::glmnet(x = missing_arg(), y = missing_arg(), weights = missing_arg(), 
+#&gt;     family = &quot;gaussian&quot;)
+
+linear_reg() %&gt;% set_engine(&quot;stan&quot;) %&gt;% translate()
+#&gt; Linear Regression Model Specification (regression)
+#&gt; 
+#&gt; Computational engine: stan 
+#&gt; 
+#&gt; Model fit template:
+#&gt; rstanarm::stan_glm(formula = missing_arg(), data = missing_arg(), 
+#&gt;     weights = missing_arg(), family = stats::gaussian, refresh = 0)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p><em>Note:</em></p>
+<ul>
+<li><p><code>missing_arg()</code> is just a placeholder for the data that has yet to be provided.</p></li>
+<li><p>For the <code>Stan</code> and <code>glmnet</code> engines, the <code>family</code> argument was automatically added as a default. As will be shown below, this option can be changed.</p></li>
+</ul>
+<ol start="4" style="list-style-type: decimal">
+<li>Example: predict the sale price of houses in the Ames data as a function of only longitude and latitude.</li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxtX21vZGVsIDwtICIsIiAgbGluZWFyX3JlZygpICU+JSAiLCIgIHNldF9lbmdpbmUoXCJsbVwiKSIsIiIsImxtX2Zvcm1fZml0IDwtICIsIiAgbG1fbW9kZWwgJT4lICIsIiAgIyBSZWNhbGwgdGhhdCBTYWxlX1ByaWNlIGhhcyBiZWVuIHByZS1sb2dnZWQiLCIgIGZpdChTYWxlX1ByaWNlIH4gTG9uZ2l0dWRlICsgTGF0aXR1ZGUsIGRhdGEgPSBhbWVzX3RyYWluKSIsIiIsImxtX3h5X2ZpdCA8LSAiLCIgIGxtX21vZGVsICU+JSAiLCIgIGZpdF94eSgiLCIgICAgeCA9IGFtZXNfdHJhaW4gJT4lIHNlbGVjdChMb25naXR1ZGUsIExhdGl0dWRlKSwiLCIgICAgeSA9IGFtZXNfdHJhaW4gJT4lIHB1bGwoU2FsZV9QcmljZSkiLCIgICAgKSIsIiAgICAiLCJsbV9mb3JtX2ZpdCIsIiM+IHBhcnNuaXAgbW9kZWwgb2JqZWN0IiwiIz4gIiwiIz4gRml0IHRpbWU6ICA0bXMgIiwiIz4gIiwiIz4gQ2FsbDoiLCIjPiBzdGF0czo6bG0oZm9ybXVsYSA9IFNhbGVfUHJpY2UgfiBMb25naXR1ZGUgKyBMYXRpdHVkZSwgZGF0YSA9IGRhdGEpIiwiIz4gIiwiIz4gQ29lZmZpY2llbnRzOiIsIiM+IChJbnRlcmNlcHQpICAgIExvbmdpdHVkZSAgICAgTGF0aXR1ZGUgICIsIiM+ICAgICAtMzE2LjM3ICAgICAgICAtMi4wOCAgICAgICAgIDMuMDEiLCJsbV94eV9maXQiLCIjPiBwYXJzbmlwIG1vZGVsIG9iamVjdCIsIiM+ICIsIiM+IEZpdCB0aW1lOiAgMW1zICIsIiM+ICIsIiM+IENhbGw6IiwiIz4gc3RhdHM6OmxtKGZvcm11bGEgPSAuLnkgfiAuLCBkYXRhID0gZGF0YSkiLCIjPiAiLCIjPiBDb2VmZmljaWVudHM6IiwiIz4gKEludGVyY2VwdCkgICAgTG9uZ2l0dWRlICAgICBMYXRpdHVkZSAgIiwiIz4gICAgIC0zMTYuMzcgICAgICAgIC0yLjA4ICAgICAgICAgMy4wMSJdfQ== -->
+<pre class="r"><code>lm_model &lt;- 
+  linear_reg() %&gt;% 
+  set_engine(&quot;lm&quot;)
+
+lm_form_fit &lt;- 
+  lm_model %&gt;% 
+  # Recall that Sale_Price has been pre-logged
+  fit(Sale_Price ~ Longitude + Latitude, data = ames_train)
+
+lm_xy_fit &lt;- 
+  lm_model %&gt;% 
+  fit_xy(
+    x = ames_train %&gt;% select(Longitude, Latitude),
+    y = ames_train %&gt;% pull(Sale_Price)
+    )
+    
+lm_form_fit
+#&gt; parsnip model object
+#&gt; 
+#&gt; Fit time:  4ms 
+#&gt; 
+#&gt; Call:
+#&gt; stats::lm(formula = Sale_Price ~ Longitude + Latitude, data = data)
+#&gt; 
+#&gt; Coefficients:
+#&gt; (Intercept)    Longitude     Latitude  
+#&gt;     -316.37        -2.08         3.01
+lm_xy_fit
+#&gt; parsnip model object
+#&gt; 
+#&gt; Fit time:  1ms 
+#&gt; 
+#&gt; Call:
+#&gt; stats::lm(formula = ..y ~ ., data = data)
+#&gt; 
+#&gt; Coefficients:
+#&gt; (Intercept)    Longitude     Latitude  
+#&gt;     -316.37        -2.08         3.01</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p><em>Note:</em></p>
+<ul>
+<li><p>Differences between <code>fit()</code> and <code>fit_xy()</code>:</p></li>
+<li><p>When <code>fit()</code> is used with a model specification, this almost always means that dummy variables will be created from qualitative predictors.</p></li>
+</ul>
+<p>– If the underlying function requires a matrix (like <code>glmnet</code>), it will make them.</p>
+<p>– If the underlying function uses a formula, <code>fit()</code> just passes the formula to that function. We estimate that 99% of modeling functions using formulas make dummy variables. The other 1% include tree-based methods that do not require purely numeric predictors.</p>
+<ul>
+<li>The <code>fit_xy()</code> function always passes the data as-is to the underlying model function. It will not create dummy variables before doing so.</li>
+</ul>
+<ol start="5" style="list-style-type: decimal">
+<li>Not only does <code>parsnip</code> enable a consistent model interface for different packages, it also provides consistency in the model arguments.</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>It is common for different functions which fit the same model to have different argument names:</li>
+</ol>
+<ol style="list-style-type: decimal">
+<li>Example: random forest model functions: three commonly used arguments are: the number of trees in the ensemble, the number of predictors to randomly sample with each split within a tree, and the number of data points required to make a split. For three different R packages implementing this algorithm, those arguments are:</li>
+</ol>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAwEAAAC6CAYAAAD2+kE+AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAFiUAABYlAUlSJPAAACUySURBVHhe7Z3tq1XXncf7Z/g2L/uy3Ff3RUAaCEwgbxLfjDAQ8cWEmgglEwYqhUEkE8NNby02UyYaWlOTaLzlmPSqtCpITEyu8eFWmlGqBhIuQSq1KDNWUNasx73XWnvtffY5Z9/jOWd9PvBN7tl77fXwW7/18Dt77+P3BAAAAAAAZAVBAAAAAABAZhAEAAAAAABkBkEAAAAAAEBmEAQAAAAAAGQGQQAAAAAAQGYQBAAAAAAAZAZBAAAAAABAZhAEAAAAAABkBkEAAAAAAEBmEAQAAAAAAGRGEATcuHEDIYQQQgghNOPiTgAAAAAAQGYQBAAAAAAAZAZBAAAAAABAZhAEAAAAAABkBkEAAAAAAEBmEAQAAAAAAGQGQQAAAAAAQGYQBAAAAAAAZAZBAAAAAABAZhAEAAAAAABkBkEAAAAAAEBmEAQAAAAAAGQGQQAAAAAAQGYQBAAAAAAAZAZBAAAAAABAZnQbBNw5Ll6dmxNzUls+XLMH8+PB9ePi3Q9XxV37OeS26L1sbNSkxUs2OQDAlPDZgd+K7/3Hb8WuC/bAuvOdOPhzU2ZKzx37zqabFO6Jr06eFvsu/c1+huG4InbpPj4hPrNHklw4YXzhwBV7AAB8Og0C1j7cUm5kn90vrtrjefFAnP1P2f6Xe3K7n+KBWPvTilj53Orgq8Ze/7IojrtjUjfv2OQAAFPC4wwCtv7usjj1RaiL3/6fTTch3L8gXpnI4GTaIAgA6ILugoCHV8X+Z+Vm9sndYvHNZ+XG9lmx/8/2XFZYO9QGARGXFk0Q0DY9AMCE8jiDgPGVOQJ/Pil+QBDQAQQBAF3QWRDw4PPdYl5uZp99+6qc6PaLZ+Xf82+siAf2vGFVLKoN74974ur5/WL7P83LDfAWcegbc/b2+XfFjhc2mk1xoEV5pXuMZrvo3TLpFat7TBr3+Mzto9vl501i/6crYv+Pn9Z12vijd8XV/30gbh7dLbY8pdLPi6d/vF+sRLtuXf5Wc83cU5vEq3vOirWH9qSr+0+Oi6ufu7rLvF/YLU65J5/+9K7YbI+HdW8gEQQ8+NTYMrafs/GWD27KT2V91q71xG5rN1Wf3vXQ6s3tgq757tiS2ZR8el0cfOeweEItQu9ctmcfiO++OC22LbwvNqjjO98Xmw9cEDcf2dMSc/37YuEL73qV7sg1cd+m0dy7LpYOLInv71SLYahyk/FQ3DkflrdVlee5SHN9YdoYm/+pR1uOLYtndsnzMs33f3FS7HrL/B1syB/9VXx25OMinfbB9y6L7/xpau2seE6emz98QXz2nvXpnUti75V74v61s+KVBXPthl1LYuH8X+1FipZBwAB12PDeBdMuPa6WxSmXJsrjidd6YtcndvFy3LoiFva+b2wm9cyvTovPbpnJ9uKR96tjdRo3p3LeUX7h2vL9X5wQS9fu2ZMuEOyJpa99/zksXjl2PfSf7y6Lvb8K8zn1rb8w2Y3+L86Ki+dPis3a7ofFvq+9c34Q8O05sVXl9bo8dsfmEwcBN86IZ9TnhTNCraIFX5vjG/ZdMHXs5wsAM0JHQcBdcfzf1YbXffu/Jg69oD6/Ko4Hj7XYjeuT82L+qRfF4tGzYuXzm+bZ+Wv7xSZ5bv6fd4h3T5wVvT0vio067Wax48OrcukaJAiw1/3muDj+m1d1vs8+v8mWeVz03txiNsT/frx4bv/uH3foYxt/tFscOrEir9shNj8p6/OTUzaNrbuUquMv/XxeOCRbLLlzU6ycWBSb1bHi8R7bvjpSdwLcXZXAfs7G7lhpy426PmeLtqq7MWf/V1/Uol3QNW4TtkEuHD9867RY8h9LuHZaPKc2VPtOi4OfXBAHf31Yb8bmD18z5yXueqXn9p0RSydPi62vm887zrnHG/4mlu2G67kDZ8WySvOG+fzEz8vF9M7pns7/iZ8vi30nL4ulIz3xQ1mvDW+tCOdajfWFqWM8/ifT/WFJX7vhjZ5YOLYiDr5nfEulKzfk0k//2xz74VsnZZkrYt9/mzI3yM1dEXzYTZdJJ+vsynztfTEv81Q+vlRsxuQGs4gDyiBgxyd/E3fueLrndmwD1kGW8YRs0145Xk6trtmNqzfelE2+WBF73zJ5bDvtnu+/LvaqOssN79YjK2L52EkZbB2WtjAb5Dt/kePvwGFTjwPnzCNLf5m2dwNKW5p554x4RQY9W4+V7wC6u0EblB3es3OT9Z9XPrXBwoPrYt/P1MZ/Wew9dkHayvbt6yfFxSIgtRt9eXyDDAh3yXSnvvjazltREHBPfta2XxIH/UCicifgb2Jpr7pOBrlXXLqH4uIH74fHGn0BYHboJgj45pDYojafbjMscZvx8AVht5GWG3n/sMSlL1+IXRO9f5Vpi3cLBgsCXvydK8A+oy+P7f7ULQpuk+2+pbefn14UZ2/fFXfvGF09qN5xcHcqXN13i5VijrF19Ot0qye2q3QjPg7k3q8o7GdtXN4dcPXZWWz4FVffVo9izYkdf1Rb/Dbtgq5xm6gf/PpKn0Xjgbh/54LYoRab1+TiZ4+665/7yOug88vRYmYXwZ+fldsgi01TbkquiYXXZJpdy+LUX8vN0cXfqY2I+0ZtkPrCNDAe/7O+FWzIE48D2cdfvrf3XBF0qjsIp/aZdEVQ4TZdP5ObcnNE3P/0Y1Om+3ZWcvGw2qz5QUYZBFTk6jpoHV5bFp+VX2wbbB7fP3DZCzSuib3qDoX7VvnBZWPLN06Lr7w7Kz6Fbaf2caBvxD59V+ZjsRzbyOJ8YNsnXoIrtg+8Lx8C7sng4h11ndyIF48Ru41+tLHXuHPLYvm7r8SCDCjUtS7gKkg8DnT/3LIJAN+5bPzqvuw3FYD4dweafAFghugkCHAbz+0f3iw2mne/PmQ2w2oTX4xft3GtPiLjHnXZtGdF3JbX3/6zvP5Jmbb4xnqwIGD70XJLHacp87L1cBv3GpnrUnVP1KmjIKD4pSVrPxMU+O9ZpG3p2v/sOzJ0atUu6JrmhT56HKNQeVs7eX1lMbOLsfrm6y9qQ/KNXETtt1nOR9xCViO3kZr+jQn4jMX/nG+9ET5WEQcBRV6/D7/1ccd/4O5AuPz8oDaxgXPXpYKAyovB9lv2kepgcWnTcra7J9tvghT9uNG+M2L567/rM46iLlM71h6Km7IN2ndkG5/51Ulx8FLYlkogqCg21WWwGT8O5FReF33bH+DOlZo/ct2e80j4kHgUBrAuKNh60rsr0+ALALPE6EHAgxWxW23WE5tMo3mx+3P3DXx9EKAWp6tve78upPT8zvJ5+/UMAm4fN5vl6Bd6jFbFmv6mfcxBgMQEV9J+6v0G9Y2+d6elVRDQql3QNU0LvXuEwj2ec0puyLaqxWbgIEDy7TmxTS9mpZ6RG5ri299b58RmdfyNZf1ISLBB+uIrcdN+wzX9GxPwGYv/uU2S98294nEGAcGm02OkOliU3VTa4jEeX5e+8e64PNCP/Rx872P76NJvxeY/lLkVdZnqsfZQ3P/2mlj6aNk+py834O99VdigVRCwJucmZZ+dS+KVj1a0HfdW3idpEwT0xN4vzood+nEj9QVIdMcgNW9K7pzs6ePPfHTFPB60c1mcKjux0RcAZomRg4C7J8xPXM7/9FC0yZT6wDyPXj573xAE3Dkldj41JzbtPSVWTktdWxN3g/HsHuvZLA7ZxxgUK2+qYyMGAXJrnX6HQdJ4F2N9g4DiEaDnN+kXrV894T/Fn6qPspF6MdkFXm3aBV1Tv9C7Dcuy+Mw9LvDoinmEYOAg4KG4eEQ9k9wTB89fFkvn5Kb+Vnzf2t26Dx/Z0J3/oHSA2diYgGMs/iev26U3uf5jIQ/FZ79Wx7yN3KCP4qxDEDBSHRz2xdEwD8kjOc/WPPoj7qyIbVF+MzfWHtn3IDz/SQUB6tEuFXy6R3CcHXacd/NQwndaBQHm3P3VE2JefQ7eKZDUBAHFI0Cvv6+v+8EH5TsxGoIAyIQRgwC3Cfa/7fcoXnCNn6uvDwL0htjTxhfU8+wmSRFwbF0UvTPHxbs/2WyCDKnRggC5J5Kbcf1S7VMvit0fHhdnj74rdv9oo5h7/pdiVTetZRDw4KzYrdNtEq++uSh2vB3/QlJEUxBQvAws9eRusRJk5OqjXvqN7PHCIXHTzq392wVdU7/Q/584pZ97/a145tfqRceT+mVe9QLn8EGAya+Qegzho/JXOO7L6/TiaL9xWz52WryiNk2vnxAXbaKZ25hkztj8zz6fr15EVy/buhdl1bFyIyc327bMVi/lrkcQMEodCspHfcxdlAvi4JFl8Zy0XfEt+L0L4hX52ZXh7PGM925F8Z7D6z2x48DHYuHclD1w/uhr/cVCYYMDS/rXf4rn6yUuCFBzjnqZ1/0YgX4P6YZZmIrn8n+2LA6ePCsWpK2e0GmGCwJ8f/TvStQGASq9fhnY1sv7YlFDEACZMFoQ8LV9Ifh5/7n/kLXfvag3pvqnQ5MbacPaH3eKTU9uF4cuXRWr9k7C8f8yv74z/1829cPbYuXt7eJp9fjRk0+LLf/ZE1fPLOo0owYBirvqpzbdT2nObRSb/m1RHL/mvn1vGQRI1v7ofop0o9jy00PiatNmuzEIkJv4T3fr88Z+Pq4+O8X+31ibqPKkTW5Gj/k0twu6pnFTfeuC2KW/nZcLoP25w5sfqRd1B9yE3bumX4abf+eCuPhn+1jCJ2fENv2t3JJYKvzxobjzP+onFstnwOf3nhBL/1M+q9xYX5g6xuJ/ikdrYtn7CdGt710R350/of0s2JAP8POc6xMESIatg8+jvwc/iarzOHBOfOV+jlKdP3lCbLWP6G3YdVhsO3JF3PG/mQ5sJs//Pv7Z1Umn+hOz2gZeLOOCgG0fnC4eF3piQW72vZ8RVf1x6oD387PSd+7Yn+8cLgiQPLom9upfSPNeEK4NAiSyvB+qc/HdHQVBAGRCJy8Gj459bOVfe94z75K1nnhRblyLICA7HsgARr0XkPoln/qACjLgnPm1lvJ2usLdUveDAACA8ZF8J2ACcQGl/7O3ALkxIUHAA7HyhnmWffNPfil6Z1bE8Q8XxY5/lsee3F75OdFscL8Q5P17BiUEAVnjnlF2L9Z9clbs3Wduzc8f4Kc+AeDxMBVBgPuFIPWict07HQAZMCFBgEQ96vObHWKL+xd31eM+P31XrGT8jebVdzZJW2wSv/xT6nkigoDcuX/tnNjl/euk+l8wPXk9fPwAAGCMTEMQ4P4RRf+XmwByZHKCAAAAAAAAGAsEAQAAAAAAmUEQAAAAAACQGQQBAAAAAACZQRAAAAAAAJAZBAEAAAAAAJlBEAAAAAAAkBkEAQAAAAAAmUEQAAAAAACQGQQBAAAAAACZEQQBN27cQAghhBBCCM24uBMAAAAAAJAZBAEAAAAAAJlBEAAAAAAAkBkEAQAAAAAAmUEQAAAAAACQGQQBAAAAAACZQRAAAAAAAJAZBAEAAAAAAJlBEAAAAAAAkBkEAQAAAAAAmUEQAAAAAACQGQQBAAAAAACZQRAAAAAAAJAZBAEAAAAAAJlBEAAAAAAAkBndBQG3emL73HbRu6U+rIrF4u/pYXXPnJh7uSdu28/DovPZs2o/TQK3Re/lObH9qGuZ6p9B2yrz2DO6bQAAYEbQ675cS5w6WD/BcmlR2nT69lEwXXQXBCiHdROAnhgW5VZzusgmCHAT9yB19PsXOiIOzgDGCf4Ho2C+TFp//8nUT8ceBIzTzrNa1vTRWRBw++j2YlOp/57CDWM+dwKGgCBgHWBygscJ/gcjoDep4/iyL1M/JQjoCOa5JkYOAvSG178dGGnxkk0YYB9HcYo3l9r5y/Nh55lrFy+ZjjVpzESkg4/iOn9yKp2gPk1NEBDf7kxs7gMbyOt7TUFAMXGGNgja6NL4ZXv5hTZPTRK+baT2yDoFg8Cej+oY96XpuygvrbDM+Lqwv0rbl+nK68P+qPOXWaW0DcD4wf9gBAgC1heCgI5gnmuiozsBbmOu/jYGr9/MmfP+BlRtBIsOiicWuxEu83Ob53JwFJvLYgMfl2E/yzSlI9h8vE2/zscPAipl2zSVDXm1vvEGu0C3L7zGbYSLchJpHOk6+hOFbaufxuZXtr3aB5V2aPtEdfTztPRvf8r2lsokF5Y5nZj2Ll5yfhr/rdKUn6uK+8BcEwRLsW0r/WLzr/NBmGHwP1hPyvk8pWIN08R+lprb4zTxeuCf8+XlVVlHJPrYIL7saFPnNlTrHqx/bersPrs11Sq0saJPWZqmdlWvT6drS1N92pZl0g3eX0P4jyZOm2h31A+FdJ2mdy7sJggINqKq0ZFzBxijVJ20DmvcwoiJ6xMDyjiO68g4D0t0XbzB1p/ja/y2WqeIB2XyOkdq8Mf1S6aRBHYuCcpryL+0WVReTTt8tD1jB6+7Ttehj+0lYR/NCra9tg9MkGRsVPWLuF9ivImprq9S/R3YH/IC/4Mx0djP1XW6Ot8r/wuvN/4a59nHT1v5YAtftmma69yGfuNK0qbO+rOqc5kubcM+ZbVuV5u8+tE2j37p2vSXyiNsw1D+08o+cRqTZzCftvLDyaObIEA11G0QdUc1N9oY2HRwumOsgW2awBESHWbKDI0fdmKiwxSRU2kHKja6iToUsmXVdHB1sfVIOYokKLsmjTnu18OTLU+3O96s27bUOnBdeR7JfGvaH9q1xvYab6BP+EBpT9he3xeqfhH3S4y1T+M11TxUOfV5wmyD/8GYqJv/Jel1yPhTuYlLkMyzj5+m1q9KPv19eeg6VzD5VvPyaFPnVJpKffqX1b5dfezcihZt1/Qrq39/Jan0u6L5ulb2qdtjBtdVy5mGuXDEIMB2VJ36OYLdLKq0hbF1J8pjRedbpyo+mzIDw65jENDUgWEZJdXF1iM5sKOya9KkHTwkbIMjbktkj7ryPFIDpa797YOAEl1v1e/9fGbiCdvr+0LVL/r5WMLXU/h+kRgLkBP4H4yJhvXIrA3S3xLyN57pdHGeffw0tX5V6tbfl9vWuR12HLo84nWtTZ1TaZLtaC6rfbv6zQdt6dN2Tb+y2s09XfhPO/vE9bFtDOZTid+HUzIXdnInQC0uzjjaoLFhGvGNmTJsfCzhHAljm451ztDUYeV1epH0HDb+XCE5SO11dTZIXhPVrybfcHOdJmy3w+Rf68Bt841tUXddUP8a26eoa/dUEbbX94WqX8T9EtNuInTpVD8MPv5gtsD/YEzo+TpeawzJ9SImNd8n8+zjp63y6e/Lreo8FHZM+nm3qXMqjW1H/VpdLat9u/rNB8OQaLumX1kt5p5W/a5oLqudfUx9giAhOc9N31zYQRBgDOycUi00zU6k0nsdF20k9UIVO3Bg8IRztA0CfOew5fqdFJft0lTKKtLYfBvrG6GdNMxTl+vXPzn4DSZt6OTqWDkpWGeN2xWUaetdSRPbp/wc2PPW7aK96ev8vKtlFah2xnXoOxgnnbC9uk2Jvx3NbW4xEVp0/8hxxbewuYP/wZhIbrgsqbUzprLO2bUrkWejn9qyijXQrrFhPi18uU2dh8SMD6/+bepcsU+/8WqoK6tNu9rkPyiV+lhGnns69p+msurakGLa5sLRgwBtQNdY0wnlhjTBrVXR2yONpDvLKDS+68jynDZqsXglnCOog0FfUziDWxgXg7zbLYhhfbTTXVoVqxXHM6rWN8I67mJgg8hZEoPfx7StLFOVtSrrVGCd2p1X/aHaVtosvTHX7Q+uk22paaffx/F1YX/WBwGrsp2hbauDd/oYbBMW23XghavA5pOwM+QE/gdjQq9TDXN2tA5V/cv6anFOra3qmlSeTX4qcwrWRHlOl+2naenLfevchriu6Tz61jlVl77jVylR39btarZzf1rWR9NUljnX3F/d+c/gvppK47BlTclc2M2LwRNPuDA+Vvps8AGGw0w8jQE4wLqB/wHAbKK/QKl8QVy3r5yuuZAgYNwQBEDnTJB/Q4bgfwAwuySDAHv3oO2TD5MKQcC4IQiAzvBucbIBg7GD/0E+VB7DTWhW74Tl3HaDN9cl2zy9c2EmQQAAAAAAADgIAgAAAAAAMoMgAAAAAAAgMwgCAAAAAAAygyAAAAAAACAzCAIAAAAAADKDIAAAAAAAIDMIAgAAAAAAMoMgAAAAAAAgMwgCAAAAAAAygyAAAAAAACAzgiDgxo0bCCGEEEIIoRlXEAT84x//QAghhBBCCM24CAIQQgghhBDKTAQBCCGEEEIIZSaCAIQQQgghhDITQQBCCCGEEEKZiSAAIYQQQgihzEQQgBBCCCGEUGYiCEAIIYQQQigzEQQghBBCCCGUmQgCEEIIIYQQykwEAQghhBBCCGUmggCEEEIIIYQyE0EAQgghhBBCmYkgACGEEEIIocxEEIAQQgghhFBm6i4I+OaIeGnuJXHkG/X5S7FQ/F2jlQWxsJI4jhBCCCGEEFpXdRcEyE393LYjYk39rQOCBfFlnKbQmjiybY4gAKGxyYy5l5bWEudQnsIn0KwIX0ZoGHUWBKwtvSTm3vyy/NsFBEkRBCA0XrFIolj4BJoV4csIDaORg4Av35wTc3P1qmz01R2DOJ0NHsy5BfGlvpMQnZMKy0o9bmQmgjJNfDdCPabknW8MVBCaJbFIolj4BJoV4csIDaOO7gSYzbXZ8JvB2Pwtv5/eUxEgVB8l0gGAv2kP3kFQsgGAFzQUQUXNeXXHgkkDda5UMBv7u04TBbIJf11YKQPX8G/vukZFgW8gf5yVY1LfyXNp/PGUzK86VodLwwLemfr636T6BJoKMb8NkYb5DU2mugkCgg25cv7Ut/S+ygEZHE9NHEqVDb+RDgzcIA4mGCcz0ZjBZ8pkIKJ1l/bFcHEwC4/nny0XSZfG3QVTYybw+9byx0LqvLdoubztIl+O0+oYqrSrVZp+dUEjqY3/aU2ST6CpEfNbnzTMb2h61E0QoAZ365eClcxAKgefVWriKI7bARzLDmgzEBPnpdxg9NMwQNG6qe8C2CaNXSStf/sL47oukkG+4TV6/FQeoQvHcps0Rdt4HG991Mb/tCbJJ9DUqI1/9U1j5wDmN4Qeq0YMAuzAqlPtIKhZAFITR3E8XsBCpQdnjew3AKqOLEKoc/VdANukeTyLZP15O8bsuIkVLJKJ80rhWLPtc+dZMLtTG//TmjSfQFOhNv7VNw3zG0KToE7uBKhB6waXHiR9B/CAQUDltl1CddfWKpyEEOpMfRfANmkmdJHss5i1SVOVbSsLZTdq439ak+wTaGLVxr/6pmF+Q2gS1EEQYBzcbdD9gKBe/oBcE2tuokhNHFZ6YogWMXWsDAxSA00dc/n5f0u1CSwQGkZtFsnY//R538etP7ddJCvXV6Wvq12I+i+Srs4jp0mIjWKHauN/VpPsE2hC1ca/up7fWoj5DaHBNXoQoAeFmxDMQGuzsdaDQk8K3sBNTS6egmuU5ETx5Uo4WeiJwEvz0pJKIwfsN1+KI2+G17MooXVRm0VSKvRneU6PpSEXycoim5IZn0GZ0bm+Y8IugmUecT5t0sT1iM+jkdTS/4wmxSfQ1OhxzG+txPyG0KDq5sVghBBCCCGE0NSIIAAhhBBCCKHMRBCAEEIIoYlS5fHfhHinD6HRRBCAEEIIIYRQZiIIQAghhBBCKDMRBCCEEEIIIZSZCAIQQgghhBDKTAQBCCGEEEIIZSaCAIQQQgghhDITQQBCCCGEEEKZiSAAIYQQQgihzEQQgBBCCCGEUGYiCEAIIYQQQigzEQQghBBCCCGUmYIg4MaNGwghhBBCCKEZVxAEAAAAAADA7EMQAAAAAACQGQQBAAAAAACZQRAAAAAAAJAZBAEAAAAAAJlBEAAAAAAAkBkEAQAAAAAAmUEQAAAAAACQGQQBAAAAAACZQRAAAAAAAJAZBAEAAAAAAJlBEAAAAAAAkBkEAQAAAAAAmUEQAAAAAACQGQQBAAAAAACZ0V0QcKsnts9tF71b6sOqWCz+bsmlRTE3tyivHITborenJ/87Aej6z4ntRwevzeqeQdsdIW2/OES5naNt4Pe78oM5Mfdy2Ecjt3emsDYa2PcnhKHGbddMuQ2niXXvb/pythhnf+I70BETsa6Nh+6CAGU0t9nTAcGABhzG6H6Zj5nbR7fL+s+JxUv2QFuGsVXE6p7hgo/O0X3oBQG6bXJS3uO1roP2zhYEAaPD4j821r2/6cvZYhaDgNui9/KErLmwPkzEujYeOgsC9CbYbvb034NuzocxurpmQoKAoZnlICAFQcBskdFkCRL6G7KHIGDmyWieGzkIUBtQ9Q14nWq/GddGdunkxvFowuhBGn/QmUHonws3n/H5hs4sOtt9i2BUGeDuW+1CUZ72fNnecqJwdwm0vKAlZbvy+rA+yWCnUqc4XdVOzXcq6sssAruozCA/bctEP9jgsLm9MJVkNFmChP6G7CnXdphRMprnOroTYDaPZkNnBkjj5k4b2E/jNque0eNOqGyyvY2p/WyoDlC9+UxtohW2Ln5ZbtNelGXLruSZePSl2ib/OrvJ9h+PSTqbvdZLp+qUnnSq7TXYPPx227Y25VNXprOJn1/FBjr/+iBAk2zvLGHavHipDKjCv20yZxt7POmfzlZNgVcb2uYTnQ/70hEFilpxf8Zphu3valmh77awYbK+qbRd1XkCmMj+pi9ngwmc3zotq8lPa/xPq9+YiMbWAG0v1l6nofy9qV0tGdqGaduo64K2+fuENkzkPDd9dBMEaCM7wypDpYzssAM27nDXofZjlep12oGSi0WEzrumTslzYVnpIMKkKQaSdbTSAdPtrNQ52W7jbO0GaVQPR02b623WXKYZrH3qWSkzYYNke2cJ22ZrB3f3Q/mF/jv2e0ltn2hbqetLe6X7oQ9t8qn4r0vj92fCRyr9WU0zVJ3r/LqGWhvG6HbGdemqzhPCxPU3fTk7TOD85jFaWW39tF86dT5sg7GTd6xl2811/piM6X781VLUuaxPtaw29TFpdF7OXxLzUV/a2HDi1rXJo5sgQBnMDbzkxOxjjFnp7IrRFW7C8eRNMroT6haLwkGcagaSTlc9pwefzrt+AJVpJBVns3WPJsVKnZPtdg5m6t48eNP1q7VNTXsVTWWaczX949pYyTthg5r2zg5hm/2F0f/bZ6C+GsZ+LfIJfLkg9K1kPaN80m2pGfONWDum7JKg1oYB6Xp0V+cJYeL6m76cHSZwfvMYray2fhqOk1bEZbWpT4uN8XqMv1pSdY7Kalcf8zn0lWFtOknz3HQyYhBgO7NOKaerc+x4AOjPMo/CUawje46T7hibzneOlLM4as6VzmPamHLOwME6DgIKbL7KFmlnSw+etPNLmmzhSJSp612pZ9TGSt4JG/Rr79QTttlfGP2/fdJ+LEn11TD2a5FPum71bSmI8jF+ItMlNPhkact3eaRsZKm1oYeqf2ocd1vnCWAi+5u+nA0mcH7zGL2sNn5q0qT8z5H2Q6+sNvXR63CUJqK9v7cff7Wk6ixr6++P2tWnfk81EC1sOP55bvro5E6APyFrYyUmgpIaBwiMHnaSoXpMlxU7c61j1Aym5LmEk1QGTVSf9QoCNOm8DOZc2p7VNhtn7leeIiwzfV3Ul5UyE/Vu1d5pJmyzP8GkJyRr29SknOrDYezXIp903ULfqh9vZT61bRkZa9eavPuVq88nbK9Yvzo/Jia+v+nL6WUC5zePbsuq89NwnFRoU1abNG2DgIH9vXn81ZKqs6yt2gO4fU+7+kxGEDAZ69rjp4MgwBjUOYEyer/O1Qb1O6/45jnqPM/o5pqwQ80xe80t9eCO+n+8GTcOV3Vei+7ssM667ET92qQZLgiw+bg26Gub8vYJy7kt8zDY45Wy6vqnuUxn/0r7/EnLb4smrJsm2d5ZImyzPwn5f/tUfMJRsadEH/Ns7rB9W3+uTz72et/HgvGliPNJlZkYK7Wkrm+g1k6SpnOVtsYMUudpIO4nRWwDa/ux9rcHfTmtPKb5rSVdl1WXn25ro4/6Zbk9SMPYUlTqk1hjY9Zh/NWSqHPFDq3qM74gwHx+fPPcNDB6EKCN4wwYRoVNaOfRhrZOpPPxnd0NHCNlfN15wSQTpnHlmk52x1WeKl3kLA7rAIt7/GsSaa0ThPl62PNl2xMbYEl18LmBbqSd7Naq6AX16eN8hdMq+fUK81aq7Zs+ZbqBs+j3W2yDeDAlbZBo70wRtrl2kaz4k1M8GUW+qI9FdlcUPlB3rkU+RR5O1byCsZUct5Jk2wasszzij+1kujY2TOYTp5G0rfM0MHH9TV/ODo9pfmuis7Ja+GlBnNZPF6+7stxLqo5emgHaHuyVlIL9g6SL8dcGXb8oH9ffPi3rM/La39aGlXpX297pujZldPNi8DSTciSo4IKAaXd4AAAAGBD2SjMJQQCO3QqCAAAAgExhrzSTEATg2K0gCAAAgHERPKJRozaPHkMzre08pr0S/T5eCAIAAAAAADKDIAAAAAAAIDMIAgAAAAAAMoMgAAAAAAAgMwgCAAAAAAAygyAAAAAAACAzCAIAAAAAADKDIAAAAAAAIDMIAgAAAAAAMoMgAAAAAAAgMwgCAAAAAAAyIwgCbty4gRBCCCGEEJpxEQQghBBCCCGUmXgcCAAAAAAgMwgCAAAAAAAygyAAAAAAACAzCAIAAAAAADKDIAAAAAAAIDMIAgAAAAAAMoMgAAAAAAAgMwgCAAAAAAAygyAAAAAAACAzCAIAAAAAALJCiP8Hhpke2UuBi4gAAAAASUVORK5CYII=" /></p>
+<ol start="2" style="list-style-type: lower-alpha">
+<li><code>parsnip</code> uses common arguments names within and between packages.</li>
+</ol>
+<ol style="list-style-type: decimal">
+<li>Example: random forest model functions: <code>parsnip</code> models use:</li>
+</ol>
+<p><img src="data:image/png;base64,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" /></p>
+<ol start="3" style="list-style-type: lower-alpha">
+<li>The <code>parsnip</code> argument names have also been standardized with similar recipe arguments: Our rule of thumb when standardizing argument names is:</li>
+</ol>
+<p><em>If a practitioner were to include these names in a plot or table, would the people viewing those results understand the name?</em></p>
+<ol start="4" style="list-style-type: lower-alpha">
+<li>To understand how the <code>parsnip</code> argument names map to the original names, use the help file for the model (available via <code>?rand_forest</code>) as well as the <code>translate()</code> function:</li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbInJhbmRfZm9yZXN0KHRyZWVzID0gMTAwMCwgbWluX24gPSA1KSAlPiUgIiwiICBzZXRfZW5naW5lKFwicmFuZ2VyXCIpICU+JSAiLCIgIHNldF9tb2RlKFwicmVncmVzc2lvblwiKSAlPiUgIiwiICB0cmFuc2xhdGUoKSIsIiM+IFJhbmRvbSBGb3Jlc3QgTW9kZWwgU3BlY2lmaWNhdGlvbiAocmVncmVzc2lvbikiLCIjPiAiLCIjPiBNYWluIEFyZ3VtZW50czoiLCIjPiAgIHRyZWVzID0gMTAwMCIsIiM+ICAgbWluX24gPSA1IiwiIz4gIiwiIz4gQ29tcHV0YXRpb25hbCBlbmdpbmU6IHJhbmdlciAiLCIjPiAiLCIjPiBNb2RlbCBmaXQgdGVtcGxhdGU6IiwiIz4gcmFuZ2VyOjpyYW5nZXIoeCA9IG1pc3NpbmdfYXJnKCksIHkgPSBtaXNzaW5nX2FyZygpLCBjYXNlLndlaWdodHMgPSBtaXNzaW5nX2FyZygpLCAiLCIjPiAgICAgbnVtLnRyZWVzID0gMTAwMCwgbWluLm5vZGUuc2l6ZSA9IG1pbl9yb3dzKH41LCB4KSwgbnVtLnRocmVhZHMgPSAxLCAiLCIjPiAgICAgdmVyYm9zZSA9IEZBTFNFLCBzZWVkID0gc2FtcGxlLmludCgxMF41LCAxKSkiXX0= -->
+<pre class="r"><code>rand_forest(trees = 1000, min_n = 5) %&gt;% 
+  set_engine(&quot;ranger&quot;) %&gt;% 
+  set_mode(&quot;regression&quot;) %&gt;% 
+  translate()
+#&gt; Random Forest Model Specification (regression)
+#&gt; 
+#&gt; Main Arguments:
+#&gt;   trees = 1000
+#&gt;   min_n = 5
+#&gt; 
+#&gt; Computational engine: ranger 
+#&gt; 
+#&gt; Model fit template:
+#&gt; ranger::ranger(x = missing_arg(), y = missing_arg(), case.weights = missing_arg(), 
+#&gt;     num.trees = 1000, min.node.size = min_rows(~5, x), num.threads = 1, 
+#&gt;     verbose = FALSE, seed = sample.int(10^5, 1))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<ol start="6" style="list-style-type: decimal">
+<li>Modeling functions in <code>parsnip</code> separate model arguments into two categories:</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li><p>Main arguments: more commonly used and tend to be available across engines.</p></li>
+<li><p>Engine arguments: either specific to a particular engine or used more rarely.</p></li>
+<li><p>Example: in the translation of the random forest code above, the arguments <code>num.threads</code>, <code>verbose</code>, and <code>seed</code> were added by default. These arguments are specific to the ranger implementation of random forest models and wouldn’t make sense as main arguments.</p></li>
+<li><p>Engine-specific arguments can be specified in <code>set_engine()</code>.</p></li>
+</ol>
+<ol style="list-style-type: decimal">
+<li>Example: to have the <code>ranger::ranger()</code> function print out more information about the fit:</li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbInJhbmRfZm9yZXN0KHRyZWVzID0gMTAwMCwgbWluX24gPSA1KSAlPiUgIiwiICBzZXRfZW5naW5lKFwicmFuZ2VyXCIsIHZlcmJvc2UgPSBUUlVFKSAlPiUgIiwiICBzZXRfbW9kZShcInJlZ3Jlc3Npb25cIikgIiwiIz4gUmFuZG9tIEZvcmVzdCBNb2RlbCBTcGVjaWZpY2F0aW9uIChyZWdyZXNzaW9uKSIsIiM+ICIsIiM+IE1haW4gQXJndW1lbnRzOiIsIiM+ICAgdHJlZXMgPSAxMDAwIiwiIz4gICBtaW5fbiA9IDUiLCIjPiAiLCIjPiBFbmdpbmUtU3BlY2lmaWMgQXJndW1lbnRzOiIsIiM+ICAgdmVyYm9zZSA9IFRSVUUiLCIjPiAiLCIjPiBDb21wdXRhdGlvbmFsIGVuZ2luZTogcmFuZ2VyIl19 -->
+<pre class="r"><code>rand_forest(trees = 1000, min_n = 5) %&gt;% 
+  set_engine(&quot;ranger&quot;, verbose = TRUE) %&gt;% 
+  set_mode(&quot;regression&quot;) 
+#&gt; Random Forest Model Specification (regression)
+#&gt; 
+#&gt; Main Arguments:
+#&gt;   trees = 1000
+#&gt;   min_n = 5
+#&gt; 
+#&gt; Engine-Specific Arguments:
+#&gt;   verbose = TRUE
+#&gt; 
+#&gt; Computational engine: ranger</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
 </div>
 <div id="use-the-model-results" class="section level3">
 <h3>7.2 Use the Model Results</h3>
+<ol style="list-style-type: decimal">
+<li>Once the model is created and fit, we can use the results in a variety of ways.</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li><p>Might want to plot, print, or otherwise examine the model output.</p></li>
+<li><p>Several quantities are stored in a <code>parsnip</code> model object, including the fitted model. This can be found in an element called <code>fit</code>, which can be returned using the <code>purrr::pluck()</code> function:</p></li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxtX2Zvcm1fZml0ICU+JSBwbHVjayhcImZpdFwiKSIsIiM+ICIsIiM+IENhbGw6IiwiIz4gc3RhdHM6OmxtKGZvcm11bGEgPSBTYWxlX1ByaWNlIH4gTG9uZ2l0dWRlICsgTGF0aXR1ZGUsIGRhdGEgPSBkYXRhKSIsIiM+ICIsIiM+IENvZWZmaWNpZW50czoiLCIjPiAoSW50ZXJjZXB0KSAgICBMb25naXR1ZGUgICAgIExhdGl0dWRlICAiLCIjPiAgICAgLTMxNi4zNyAgICAgICAgLTIuMDggICAgICAgICAzLjAxIl19 -->
+<pre class="r"><code>lm_form_fit %&gt;% pluck(&quot;fit&quot;)
+#&gt; 
+#&gt; Call:
+#&gt; stats::lm(formula = Sale_Price ~ Longitude + Latitude, data = data)
+#&gt; 
+#&gt; Coefficients:
+#&gt; (Intercept)    Longitude     Latitude  
+#&gt;     -316.37        -2.08         3.01</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<ol start="3" style="list-style-type: lower-alpha">
+<li>Normal methods can be applied to this object, such as printing, plotting, and so on:</li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxtX2Zvcm1fZml0ICU+JSBwbHVjayhcImZpdFwiKSAlPiUgdmNvdigpIiwiIz4gICAgICAgICAgICAgKEludGVyY2VwdCkgIExvbmdpdHVkZSAgIExhdGl0dWRlIiwiIz4gKEludGVyY2VwdCkgICAgIDIyMS43NjMgIDEuNjk0NDA2MCAtMS41MDA5OTY1IiwiIz4gTG9uZ2l0dWRlICAgICAgICAgMS42OTQgIDAuMDE3NzkxNCAtMC4wMDA2NzQ4IiwiIz4gTGF0aXR1ZGUgICAgICAgICAtMS41MDEgLTAuMDAwNjc0OCAgMC4wMzQyMDUzIl19 -->
+<pre class="r"><code>lm_form_fit %&gt;% pluck(&quot;fit&quot;) %&gt;% vcov()
+#&gt;             (Intercept)  Longitude   Latitude
+#&gt; (Intercept)     221.763  1.6944060 -1.5009965
+#&gt; Longitude         1.694  0.0177914 -0.0006748
+#&gt; Latitude         -1.501 -0.0006748  0.0342053</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p><em>Note:</em></p>
+<ul>
+<li><p>Never pass the <code>fit</code> element of a <code>parsnip</code> model to a model prediction function, e.g., use <code>predict(lm_form_fit)</code> but do not use <code>predict(lm_form_fit$fit)</code>.</p></li>
+<li><p>If the data were preprocessed in any way, incorrect predictions will be generated (sometimes, without errors). The underlying model’s prediction function has no idea if any transformations have been made to the data prior to running the model.</p></li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>Issues with some existing methods in base R: the results are stored in a manner that may not be the most useful.</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Example: <code>summary()</code> method for <code>lm</code> objects can be used to print the results of the model fit, including a table with parameter values, their uncertainty estimates, and p-values. These particular results can also be saved:</li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbIm1vZGVsX3JlcyA8LSAiLCIgIGxtX2Zvcm1fZml0ICU+JSAiLCIgIHBsdWNrKFwiZml0XCIpICU+JSAiLCIgIHN1bW1hcnkoKSIsIiIsIiMgVGhlIG1vZGVsIGNvZWZmaWNpZW50IHRhYmxlIGlzIGFjY2Vzc2libGUgdmlhIHRoZSBgY29lZmAgbWV0aG9kLiIsInBhcmFtX2VzdCA8LSBjb2VmKG1vZGVsX3JlcykiLCJjbGFzcyhwYXJhbV9lc3QpIiwiIz4gWzFdIFwibWF0cml4XCIgXCJhcnJheVwiIiwicGFyYW1fZXN0IiwiIz4gICAgICAgICAgICAgRXN0aW1hdGUgU3RkLiBFcnJvciB0IHZhbHVlICBQcig+fHR8KSIsIiM+IChJbnRlcmNlcHQpIC0zMTYuMzY4ICAgIDE0Ljg5MTcgIC0yMS4yNCAzLjA0MGUtOTEiLCIjPiBMb25naXR1ZGUgICAgIC0yLjA4MyAgICAgMC4xMzM0ICAtMTUuNjIgMy4yMTVlLTUyIiwiIz4gTGF0aXR1ZGUgICAgICAgMy4wMTAgICAgIDAuMTg0OSAgIDE2LjI3IDIuNTg1ZS01NiJdfQ== -->
+<pre class="r"><code>model_res &lt;- 
+  lm_form_fit %&gt;% 
+  pluck(&quot;fit&quot;) %&gt;% 
+  summary()
+
+# The model coefficient table is accessible via the `coef` method.
+param_est &lt;- coef(model_res)
+class(param_est)
+#&gt; [1] &quot;matrix&quot; &quot;array&quot;
+param_est
+#&gt;             Estimate Std. Error t value  Pr(&gt;|t|)
+#&gt; (Intercept) -316.368    14.8917  -21.24 3.040e-91
+#&gt; Longitude     -2.083     0.1334  -15.62 3.215e-52
+#&gt; Latitude       3.010     0.1849   16.27 2.585e-56</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p><em>Note:</em></p>
+<ul>
+<li><p>The object is a numeric matrix. This data structure was mostly likely chosen since all of the calculated results are numeric and a matrix object is stored more efficiently than a data frame.</p></li>
+<li><p>The non-numeric data (the labels for the coefficients) are contained in the row names. Keeping the parameter labels as row names is very consistent with the conventions in the original S language.</p></li>
+<li><p>Complications:</p></li>
+<li><p>When creating a visualization of the parameters values, we have to convert the parameter matrix to a data frame, which requires adding the row names as a column so that they can be used in a plot. However, several of the existing matrix column names would not be valid R column names for ordinary data frames (e.g. “Pr(&gt;|t|)”.</p></li>
+<li><p>The consistency of the column names. For <code>lm</code> objects, the column for the test statistic is “Pr(&gt;|t|)”, but for other models, a different test might be used and, as a result, the column name would be different (e.g., “Pr(&gt;|z|)”) and the type of test would be encoded in the column name.</p></li>
+<li><p>The matrix is not a highly reusable data structure mostly because it constrains the data to be of a single type (e.g. numeric).</p></li>
+<li><p>Keeping some data in the dimension names is also problematic since those data must be extracted to be of general use.</p></li>
+<li><p>Solutions: The <code>broom</code> package has methods to convert many types of model objects to a tidy structure.</p></li>
+<li><p>Example: using the <code>tidy()</code> method on the linear model produces:</p></li>
+</ul>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbInRpZHkobG1fZm9ybV9maXQpIiwiIz4gIyBBIHRpYmJsZTogMyB4IDUiLCIjPiAgIHRlcm0gICAgICAgIGVzdGltYXRlIHN0ZC5lcnJvciBzdGF0aXN0aWMgIHAudmFsdWUiLCIjPiAgIDxjaHI+ICAgICAgICAgIDxkYmw+ICAgICA8ZGJsPiAgICAgPGRibD4gICAgPGRibD4iLCIjPiAxIChJbnRlcmNlcHQpICAtMzE2LiAgICAgIDE0LjkgICAgICAgLTIxLjIgMy4wNGUtOTEiLCIjPiAyIExvbmdpdHVkZSAgICAgIC0yLjA4ICAgICAwLjEzMyAgICAgLTE1LjYgMy4yMWUtNTIiLCIjPiAzIExhdGl0dWRlICAgICAgICAzLjAxICAgICAwLjE4NSAgICAgIDE2LjMgMi41OGUtNTYiXX0= -->
+<pre class="r"><code>tidy(lm_form_fit)
+#&gt; # A tibble: 3 x 5
+#&gt;   term        estimate std.error statistic  p.value
+#&gt;   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+#&gt; 1 (Intercept)  -316.      14.9       -21.2 3.04e-91
+#&gt; 2 Longitude      -2.08     0.133     -15.6 3.21e-52
+#&gt; 3 Latitude        3.01     0.185      16.3 2.58e-56</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>– The column names are standardized across models and do not contain any additional data (such as the type of statistical test).</p>
+<p>– The data previously contained in the row names are now in a column called terms and so on. One important principle in the <code>tidymodels</code> ecosystem is that a function should return values that are <em>predictable</em>, <em>consistent</em>, and <em>unsurprising</em>.</p>
 </div>
 <div id="make-predictions" class="section level3">
 <h3>7.3 Make Predictions</h3>
@@ -1784,7 +2131,7 @@ summary {
 </div>
 </div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIkJhc2ljcyAtIENINyINCmF1dGhvcjogSmluZ3lhbmcoSnVkeSkgWmhhbmcNCm91dHB1dDogaHRtbF9ub3RlYm9vaw0KZWRpdG9yX29wdGlvbnM6IA0KICBjaHVua19vdXRwdXRfdHlwZTogaW5saW5lDQotLS0NCg0KIyBCYXNpY3MNCiMjIENIQVBURVIgNyBGaXR0aW5nIE1vZGVscyB3aXRoIFBhcnNuaXANCg0KIyMjIDcuMSBDcmVhdGUgYSBNb2RlbA0KDQojIyMgNy4yIFVzZSB0aGUgTW9kZWwgUmVzdWx0cw0KDQojIyMgNy4zIE1ha2UgUHJlZGljdGlvbnMNCg0KIyMjIDcuNCBQYXJzbmlwLWFkamFjZW50IFBhY2thZ2VzDQoNCiMjIyA3LjUgQ2hhcHRlciBTdW1tYXJ5DQoNCg==</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIkJhc2ljcyAtIENINyINCmF1dGhvcjogSmluZ3lhbmcoSnVkeSkgWmhhbmcNCm91dHB1dDogaHRtbF9ub3RlYm9vaw0KZWRpdG9yX29wdGlvbnM6IA0KICBjaHVua19vdXRwdXRfdHlwZTogaW5saW5lDQotLS0NCg0KIyBCYXNpY3MNCiMjIENIQVBURVIgNyBGaXR0aW5nIE1vZGVscyB3aXRoIFBhcnNuaXANCg0KMS4gVGhlIGBwYXJzbmlwYCBwYWNrYWdlIHByb3ZpZGVzIGEgZmx1ZW50IGFuZCBzdGFuZGFyZCBpbnRlcmZhY2UgZm9yIGEgdmFyaWV0eSBvZiBkaWZmZXJlbnQgbW9kZWxzLiANCg0KIyMjIDcuMSBDcmVhdGUgYSBNb2RlbA0KDQoxLiBPbmNlIHRoZSBkYXRhIGhhdmUgYmVlbiBlbmNvZGVkIGluIGEgZm9ybWF0IHJlYWR5IGZvciBhIG1vZGVsaW5nIGFsZ29yaXRobSwgc3VjaCBhcyBhIG51bWVyaWMgbWF0cml4LCB0aGV5IGNhbiBiZSB1c2VkIGluIHRoZSBtb2RlbCBidWlsZGluZyBwcm9jZXNzLg0KDQphLiBBIGxpbmVhciByZWdyZXNzaW9uIG1vZGVsIGlzIGVxdWl2YWxlbnQgdG86IHNwZWNpZnkgdGhlIG91dGNvbWUgZGF0YSBhcyBudW1lcmljLCB0aGUgcHJlZGljdG9ycyBhcmUgcmVsYXRlZCB0byB0aGUgbW9kZWwgaW4gdGVybXMgb2Ygc2ltcGxlIHNsb3BlcyBhbmQgaW50ZXJjZXB0czoNCg0KJHlfe2l9ID0gXGJldGFfezB9ICsgXGJldGFfezF9eF97MWl9ICsgLi4uICtcYmV0YV97cH14X3twaX0kDQoNCiANCg0KKDEpIE1ldGhvZHMgdG8gZXN0aW1hdGUgdGhlIG1vZGVsIHBhcmFtZXRlcnM6DQoNCihhKSBPcmRpbmFyeSBsaW5lYXIgcmVncmVzc2lvbjogdXNlcyB0aGUgdHJhZGl0aW9uYWwgbWV0aG9kIG9mIGxlYXN0IHNxdWFyZXMgdG8gc29sdmUgZm9yIHRoZSBtb2RlbCBwYXJhbWV0ZXJzLg0KDQo8MT4gVGhlIGBzdGF0c2AgcGFja2FnZSBjYW4gYmUgdXNlZCBmb3IgdGhlIGxpbmVhciByZWdyZXNzaW9uIG1vZGVsIGNhc2UuIFRoZSBzeW50YXggZm9yIGBsbSgpYCBpczoNCg0KYG1vZGVsIDwtIGxtKGZvcm11bGEsIGRhdGEsIC4uLilgDQoNCiogYC4uLmAgc3ltYm9saXplcyBvdGhlciBvcHRpb25zIHRvIHBhc3MgdG8gYGxtKClgLg0KDQoqIFRoZSBmdW5jdGlvbiBkb2VzIG5vdCBoYXZlIGFuIGB4L3lgIGludGVyZmFjZSB3aGVyZSB3ZSBtaWdodCBwYXNzIGluIG91ciBvdXRjb21lIGFzIGB5YCBhbmQgb3VyIHByZWRpY3RvciBgeGAuDQoNCihiKSBSZWd1bGFyaXplZCBsaW5lYXIgcmVncmVzc2lvbjogYWRkcyBhIHBlbmFsdHkgdG8gdGhlIGxlYXN0IHNxdWFyZXMgbWV0aG9kIHRvIGVuY291cmFnZSBzaW1wbGljaXR5IGJ5IHJlbW92aW5nIHByZWRpY3RvcnMgYW5kL29yIHNocmlua2luZyB0aGVpciBjb2VmZmljaWVudHMgdG93YXJkcyB6ZXJvLiBUaGlzIGNhbiBiZSBleGVjdXRlZCB1c2luZyBCYXllc2lhbiBvciBub24tQmF5ZXNpYW4gdGVjaG5pcXVlcy4NCg0KPDE+IFRvIGVzdGltYXRlIHdpdGggcmVndWxhcml6YXRpb24sIGEgQmF5ZXNpYW4gbW9kZWwgY2FuIGJlIGZpdCB1c2luZyB0aGUgYHJzdGFuYXJtYCBwYWNrYWdlOg0KDQpgbW9kZWwgPC0gc3Rhbl9nbG0oZm9ybXVsYSwgZGF0YSwgZmFtaWx5ID0gImdhdXNzaWFuIiwgLi4uKWANCg0KKiBUaGUgb3RoZXIgb3B0aW9ucyBwYXNzZWQgdmlhIGAuLi5gIHdvdWxkIGluY2x1ZGUgYXJndW1lbnRzIGZvciB0aGUgX3ByaW9yIGRpc3RyaWJ1dGlvbnNfIG9mIHRoZSBwYXJhbWV0ZXJzIGFzIHdlbGwgYXMgc3BlY2lmaWNzIGFib3V0IHRoZSBudW1lcmljYWwgYXNwZWN0cyBvZiB0aGUgbW9kZWwuIA0KDQoqIEFzIHdpdGggYGxtKClgLCBvbmx5IHRoZSBmb3JtdWxhIGludGVyZmFjZSBpcyBhdmFpbGFibGUuIA0KDQo8Mj4gQSBwb3B1bGFyIG5vbi1CYXllc2lhbiBhcHByb2FjaCB0byByZWd1bGFyaXplIHJlZ3Jlc3Npb24gaXMgdGhlIGdsbW5ldCBtb2RlbDoNCg0KYG1vZGVsIDwtIGdsbW5ldCh4ID0gbWF0cml4LCB5ID0gdmVjdG9yLCBmYW1pbHkgPSAiZ2F1c3NpYW4iLCAuLi4pYA0KDQoqIEluIHRoaXMgY2FzZSwgdGhlIHByZWRpY3RvciBkYXRhIG11c3QgYWxyZWFkeSBiZSBmb3JtYXR0ZWQgaW50byBhIG51bWVyaWMgbWF0cml4OyB0aGVyZSBpcyBvbmx5IGFuIGB4L3lgIG1ldGhvZCBhbmQgbm8gZm9ybWpsYSBtZXRob2QuDQoNCg0KKk5vdGU6Kg0KDQorIFRoZXNlIGludGVyZmFjZXMgYXJlIGhldGVyb2dlbmVvdXMgaW4gZWl0aGVyIGhvdyB0aGUgZGF0YSBhcmUgcGFzc2VkIHRvIHRoZSBtb2RlbCBmdW5jdGlvbiBvciBpbiB0ZXJtcyBvZiB0aGVpciBhcmd1bWVudHM6IA0KDQotIFRvIGZpdCBtb2RlbHMgYWNyb3NzIGRpZmZlcmVudCBwYWNrYWdlcywgdGhlIGRhdGEgbXVzdCBiZSBmb3JtYXR0ZWQgaW4gZGlmZmVyZW50IHdheXMuIGBsbSgpYCBhbmQgYHN0YW5fZ2xtKClgIG9ubHkgaGF2ZSBmb3JtdWxhIGludGVyZmFjZXMgd2hpbGUgYGdsbW5ldCgpYCBkb2VzIG5vdC4gRm9yIG90aGVyIHR5cGVzIG9mIG1vZGVscywgdGhlIGludGVyZmFjZXMgbWF5IGJlIGV2ZW4gbW9yZSBkaXNwYXJhdGUuIA0KDQoyLiBGb3IgdGlkeW1vZGVscywgdGhlIGFwcHJvYWNoIHRvIHNwZWNpZnlpbmcgYSBtb2RlbCBpcyBpbnRlbmRlZCB0byBiZSBtb3JlIHVuaWZpZWQ6DQoNCmEuICpTcGVjaWZ5IHRoZSB0eXBlIG9mIG1vZGVsIGJhc2VkIG9uIGl0cyBtYXRoZW1hdGljYWwgc3RydWN0dXJlKjogZS5nLiwgbGluZWFyIHJlZ3Jlc3Npb24sIHJhbmRvbSBmb3Jlc3QsIEstbmVhcmVzdCBuZWlnaGJvcnMsIGV0Yy4NCg0KYi4gKlNwZWNpZnkgdGhlIGVuZ2luZSBmb3IgZml0dGluZyB0aGUgbW9kZWwqOiBtb3N0IG9mdGVuIHRoaXMgcmVmbGVjdHMgdGhlIHNvZnR3YXJlIHBhY2thZ2UgdGhhdCBzaG91bGQgYmUgdXNlZC4NCg0KYy4gKldoZW4gcmVxdWlyZWQsIGRlY2xhcmUgdGhlIG1vZGUgb2YgdGhlIG1vZGVsKjogdGhlIG1vZGUgcmVmbGVjdHMgdGhlIHR5cGUgb2YgcHJlZGljdGlvbiBvdXRjb21lLiANCg0KKDEpIEZvciBudW1lcmljIG91dGNvbWVzOiB0aGUgbW9kZSBpcyBfcmVncmVzc2lvbl87IA0KDQooMikgRm9yIHF1YWxpdGF0aXZlIG91dGNvbWVzOiB0aGUgbW9kZSBpcyBfY2xhc3NpZmljYXRpb25fLiANCg0KSWYgYSBtb2RlbCBjYW4gb25seSBjcmVhdGUgb25lIHR5cGUgb2YgbW9kZWwsIHN1Y2ggYXMgbGluZWFyIHJlZ3Jlc3Npb24sIHRoZSBtb2RlIGlzIGFscmVhZHkgc2V0Lg0KDQpkLiBUaGVzZSBzcGVjaWZpY2F0aW9ucyBhcmUgYnVpbHQgd2l0aG91dCByZWZlcmVuY2luZyB0aGUgZGF0YS4NCg0KYGBge3IgZXZhbCA9IEZBTFNFfQ0KDQpsaW5lYXJfcmVnKCkgJT4lIHNldF9lbmdpbmUoImxtIikNCiM+IExpbmVhciBSZWdyZXNzaW9uIE1vZGVsIFNwZWNpZmljYXRpb24gKHJlZ3Jlc3Npb24pDQojPiANCiM+IENvbXB1dGF0aW9uYWwgZW5naW5lOiBsbQ0KDQpsaW5lYXJfcmVnKCkgJT4lIHNldF9lbmdpbmUoImdsbW5ldCIpIA0KIz4gTGluZWFyIFJlZ3Jlc3Npb24gTW9kZWwgU3BlY2lmaWNhdGlvbiAocmVncmVzc2lvbikNCiM+IA0KIz4gQ29tcHV0YXRpb25hbCBlbmdpbmU6IGdsbW5ldA0KDQpsaW5lYXJfcmVnKCkgJT4lIHNldF9lbmdpbmUoInN0YW4iKQ0KIz4gTGluZWFyIFJlZ3Jlc3Npb24gTW9kZWwgU3BlY2lmaWNhdGlvbiAocmVncmVzc2lvbikNCiM+IA0KIz4gQ29tcHV0YXRpb25hbCBlbmdpbmU6IHN0YW4NCg0KYGBgDQoNCg0KMy4gT25jZSB0aGUgZGV0YWlscyBvZiB0aGUgbW9kZWwgaGF2ZSBiZWVuIHNwZWNpZmllZCwgdGhlIG1vZGVsIGVzdGltYXRpb24gY2FuIGJlIGRvbmUgd2l0aCBlaXRoZXIgdGhlIGBmaXQoKWAgZnVuY3Rpb24gKHRvIHVzZSBhIGZvcm11bGEpIG9yIHRoZSBgZml0X3h5KClgIGZ1bmN0aW9uICh3aGVuIHlvdXIgZGF0YSBhcmUgYWxyZWFkeSBwcmUtcHJvY2Vzc2VkKS4gDQoNCmEuIFRoZSBgcGFyc25pcGAgcGFja2FnZSBhbGxvd3MgdGhlIHVzZXIgdG8gYmUgaW5kaWZmZXJlbnQgdG8gdGhlIGludGVyZmFjZSBvZiB0aGUgdW5kZXJseWluZyBtb2RlbDsgeW91IGNhbiBhbHdheXMgdXNlIGEgZm9ybXVsYSBldmVuIGlmIHRoZSBtb2RlbGluZyBwYWNrYWdl4oCZcyBmdW5jdGlvbiBvbmx5IGhhcyB0aGUgYHgveWAgaW50ZXJmYWNlLg0KDQpiLiBUaGUgYHRyYW5zbGF0ZSgpYCBmdW5jdGlvbiBjYW4gcHJvdmlkZSBkZXRhaWxzIG9uIGhvdyBwYXJzbmlwIGNvbnZlcnRzIHRoZSB1c2Vy4oCZcyBjb2RlIHRvIHRoZSBwYWNrYWdl4oCZcyBzeW50YXg6DQoNCmBgYHtyIGV2YWwgPSBGQUxTRX0NCg0KbGluZWFyX3JlZygpICU+JSBzZXRfZW5naW5lKCJsbSIpICU+JSB0cmFuc2xhdGUoKQ0KIz4gTGluZWFyIFJlZ3Jlc3Npb24gTW9kZWwgU3BlY2lmaWNhdGlvbiAocmVncmVzc2lvbikNCiM+IA0KIz4gQ29tcHV0YXRpb25hbCBlbmdpbmU6IGxtIA0KIz4gDQojPiBNb2RlbCBmaXQgdGVtcGxhdGU6DQojPiBzdGF0czo6bG0oZm9ybXVsYSA9IG1pc3NpbmdfYXJnKCksIGRhdGEgPSBtaXNzaW5nX2FyZygpLCB3ZWlnaHRzID0gbWlzc2luZ19hcmcoKSkNCg0KbGluZWFyX3JlZygpICU+JSBzZXRfZW5naW5lKCJnbG1uZXQiKSAlPiUgdHJhbnNsYXRlKCkNCiM+IExpbmVhciBSZWdyZXNzaW9uIE1vZGVsIFNwZWNpZmljYXRpb24gKHJlZ3Jlc3Npb24pDQojPiANCiM+IENvbXB1dGF0aW9uYWwgZW5naW5lOiBnbG1uZXQgDQojPiANCiM+IE1vZGVsIGZpdCB0ZW1wbGF0ZToNCiM+IGdsbW5ldDo6Z2xtbmV0KHggPSBtaXNzaW5nX2FyZygpLCB5ID0gbWlzc2luZ19hcmcoKSwgd2VpZ2h0cyA9IG1pc3NpbmdfYXJnKCksIA0KIz4gICAgIGZhbWlseSA9ICJnYXVzc2lhbiIpDQoNCmxpbmVhcl9yZWcoKSAlPiUgc2V0X2VuZ2luZSgic3RhbiIpICU+JSB0cmFuc2xhdGUoKQ0KIz4gTGluZWFyIFJlZ3Jlc3Npb24gTW9kZWwgU3BlY2lmaWNhdGlvbiAocmVncmVzc2lvbikNCiM+IA0KIz4gQ29tcHV0YXRpb25hbCBlbmdpbmU6IHN0YW4gDQojPiANCiM+IE1vZGVsIGZpdCB0ZW1wbGF0ZToNCiM+IHJzdGFuYXJtOjpzdGFuX2dsbShmb3JtdWxhID0gbWlzc2luZ19hcmcoKSwgZGF0YSA9IG1pc3NpbmdfYXJnKCksIA0KIz4gICAgIHdlaWdodHMgPSBtaXNzaW5nX2FyZygpLCBmYW1pbHkgPSBzdGF0czo6Z2F1c3NpYW4sIHJlZnJlc2ggPSAwKQ0KDQpgYGANCg0KDQoqTm90ZToqIA0KDQorIGBtaXNzaW5nX2FyZygpYCBpcyBqdXN0IGEgcGxhY2Vob2xkZXIgZm9yIHRoZSBkYXRhIHRoYXQgaGFzIHlldCB0byBiZSBwcm92aWRlZC4NCg0KKyBGb3IgdGhlIGBTdGFuYCBhbmQgYGdsbW5ldGAgZW5naW5lcywgdGhlIGBmYW1pbHlgIGFyZ3VtZW50IHdhcyBhdXRvbWF0aWNhbGx5IGFkZGVkIGFzIGEgZGVmYXVsdC4gQXMgd2lsbCBiZSBzaG93biBiZWxvdywgdGhpcyBvcHRpb24gY2FuIGJlIGNoYW5nZWQuDQoNCjQuIEV4YW1wbGU6IHByZWRpY3QgdGhlIHNhbGUgcHJpY2Ugb2YgaG91c2VzIGluIHRoZSBBbWVzIGRhdGEgYXMgYSBmdW5jdGlvbiBvZiBvbmx5IGxvbmdpdHVkZSBhbmQgbGF0aXR1ZGUuDQoNCmBgYHtyIGV2YWwgPSBGQUxTRX0NCg0KbG1fbW9kZWwgPC0gDQogIGxpbmVhcl9yZWcoKSAlPiUgDQogIHNldF9lbmdpbmUoImxtIikNCg0KbG1fZm9ybV9maXQgPC0gDQogIGxtX21vZGVsICU+JSANCiAgIyBSZWNhbGwgdGhhdCBTYWxlX1ByaWNlIGhhcyBiZWVuIHByZS1sb2dnZWQNCiAgZml0KFNhbGVfUHJpY2UgfiBMb25naXR1ZGUgKyBMYXRpdHVkZSwgZGF0YSA9IGFtZXNfdHJhaW4pDQoNCmxtX3h5X2ZpdCA8LSANCiAgbG1fbW9kZWwgJT4lIA0KICBmaXRfeHkoDQogICAgeCA9IGFtZXNfdHJhaW4gJT4lIHNlbGVjdChMb25naXR1ZGUsIExhdGl0dWRlKSwNCiAgICB5ID0gYW1lc190cmFpbiAlPiUgcHVsbChTYWxlX1ByaWNlKQ0KICAgICkNCiAgICANCmxtX2Zvcm1fZml0DQojPiBwYXJzbmlwIG1vZGVsIG9iamVjdA0KIz4gDQojPiBGaXQgdGltZTogIDRtcyANCiM+IA0KIz4gQ2FsbDoNCiM+IHN0YXRzOjpsbShmb3JtdWxhID0gU2FsZV9QcmljZSB+IExvbmdpdHVkZSArIExhdGl0dWRlLCBkYXRhID0gZGF0YSkNCiM+IA0KIz4gQ29lZmZpY2llbnRzOg0KIz4gKEludGVyY2VwdCkgICAgTG9uZ2l0dWRlICAgICBMYXRpdHVkZSAgDQojPiAgICAgLTMxNi4zNyAgICAgICAgLTIuMDggICAgICAgICAzLjAxDQpsbV94eV9maXQNCiM+IHBhcnNuaXAgbW9kZWwgb2JqZWN0DQojPiANCiM+IEZpdCB0aW1lOiAgMW1zIA0KIz4gDQojPiBDYWxsOg0KIz4gc3RhdHM6OmxtKGZvcm11bGEgPSAuLnkgfiAuLCBkYXRhID0gZGF0YSkNCiM+IA0KIz4gQ29lZmZpY2llbnRzOg0KIz4gKEludGVyY2VwdCkgICAgTG9uZ2l0dWRlICAgICBMYXRpdHVkZSAgDQojPiAgICAgLTMxNi4zNyAgICAgICAgLTIuMDggICAgICAgICAzLjAxDQoNCmBgYA0KDQoNCipOb3RlOioNCg0KKyBEaWZmZXJlbmNlcyBiZXR3ZWVuIGBmaXQoKWAgYW5kIGBmaXRfeHkoKWA6IA0KDQotIFdoZW4gYGZpdCgpYCBpcyB1c2VkIHdpdGggYSBtb2RlbCBzcGVjaWZpY2F0aW9uLCB0aGlzIGFsbW9zdCBhbHdheXMgbWVhbnMgdGhhdCBkdW1teSB2YXJpYWJsZXMgd2lsbCBiZSBjcmVhdGVkIGZyb20gcXVhbGl0YXRpdmUgcHJlZGljdG9ycy4gDQoNCi0tIElmIHRoZSB1bmRlcmx5aW5nIGZ1bmN0aW9uIHJlcXVpcmVzIGEgbWF0cml4IChsaWtlIGBnbG1uZXRgKSwgaXQgd2lsbCBtYWtlIHRoZW0uIA0KDQotLSBJZiB0aGUgdW5kZXJseWluZyBmdW5jdGlvbiB1c2VzIGEgZm9ybXVsYSwgYGZpdCgpYCBqdXN0IHBhc3NlcyB0aGUgZm9ybXVsYSB0byB0aGF0IGZ1bmN0aW9uLiBXZSBlc3RpbWF0ZSB0aGF0IDk5JSBvZiBtb2RlbGluZyBmdW5jdGlvbnMgdXNpbmcgZm9ybXVsYXMgbWFrZSBkdW1teSB2YXJpYWJsZXMuIFRoZSBvdGhlciAxJSBpbmNsdWRlIHRyZWUtYmFzZWQgbWV0aG9kcyB0aGF0IGRvIG5vdCByZXF1aXJlIHB1cmVseSBudW1lcmljIHByZWRpY3RvcnMuDQoNCi0gVGhlIGBmaXRfeHkoKWAgZnVuY3Rpb24gYWx3YXlzIHBhc3NlcyB0aGUgZGF0YSBhcy1pcyB0byB0aGUgdW5kZXJseWluZyBtb2RlbCBmdW5jdGlvbi4gSXQgd2lsbCBub3QgY3JlYXRlIGR1bW15IHZhcmlhYmxlcyBiZWZvcmUgZG9pbmcgc28uDQoNCjUuIE5vdCBvbmx5IGRvZXMgYHBhcnNuaXBgIGVuYWJsZSBhIGNvbnNpc3RlbnQgbW9kZWwgaW50ZXJmYWNlIGZvciBkaWZmZXJlbnQgcGFja2FnZXMsIGl0IGFsc28gcHJvdmlkZXMgY29uc2lzdGVuY3kgaW4gdGhlIG1vZGVsIGFyZ3VtZW50cy4gDQoNCmEuIEl0IGlzIGNvbW1vbiBmb3IgZGlmZmVyZW50IGZ1bmN0aW9ucyB3aGljaCBmaXQgdGhlIHNhbWUgbW9kZWwgdG8gaGF2ZSBkaWZmZXJlbnQgYXJndW1lbnQgbmFtZXM6DQoNCigxKSBFeGFtcGxlOiByYW5kb20gZm9yZXN0IG1vZGVsIGZ1bmN0aW9uczogdGhyZWUgY29tbW9ubHkgdXNlZCBhcmd1bWVudHMgYXJlOiB0aGUgbnVtYmVyIG9mIHRyZWVzIGluIHRoZSBlbnNlbWJsZSwgdGhlIG51bWJlciBvZiBwcmVkaWN0b3JzIHRvIHJhbmRvbWx5IHNhbXBsZSB3aXRoIGVhY2ggc3BsaXQgd2l0aGluIGEgdHJlZSwgYW5kIHRoZSBudW1iZXIgb2YgZGF0YSBwb2ludHMgcmVxdWlyZWQgdG8gbWFrZSBhIHNwbGl0LiBGb3IgdGhyZWUgZGlmZmVyZW50IFIgcGFja2FnZXMgaW1wbGVtZW50aW5nIHRoaXMgYWxnb3JpdGhtLCB0aG9zZSBhcmd1bWVudHMgYXJlOg0KDQohW10oRmlnNy4xUmFuZG9tRm9yZXN0QXJncy5QTkcpDQoNCmIuIGBwYXJzbmlwYCB1c2VzIGNvbW1vbiBhcmd1bWVudHMgbmFtZXMgd2l0aGluIGFuZCBiZXR3ZWVuIHBhY2thZ2VzLiANCg0KKDEpIEV4YW1wbGU6IHJhbmRvbSBmb3Jlc3QgbW9kZWwgZnVuY3Rpb25zOiBgcGFyc25pcGAgbW9kZWxzIHVzZToNCg0KIVtdKEZpZzcuMVBhcnNuaXBBcmdzLlBORykNCg0KYy4gVGhlIGBwYXJzbmlwYCBhcmd1bWVudCBuYW1lcyBoYXZlIGFsc28gYmVlbiBzdGFuZGFyZGl6ZWQgd2l0aCBzaW1pbGFyIHJlY2lwZSBhcmd1bWVudHM6IE91ciBydWxlIG9mIHRodW1iIHdoZW4gc3RhbmRhcmRpemluZyBhcmd1bWVudCBuYW1lcyBpczoNCg0KKklmIGEgcHJhY3RpdGlvbmVyIHdlcmUgdG8gaW5jbHVkZSB0aGVzZSBuYW1lcyBpbiBhIHBsb3Qgb3IgdGFibGUsIHdvdWxkIHRoZSBwZW9wbGUgdmlld2luZyB0aG9zZSByZXN1bHRzIHVuZGVyc3RhbmQgdGhlIG5hbWU/Kg0KDQpkLiBUbyB1bmRlcnN0YW5kIGhvdyB0aGUgYHBhcnNuaXBgIGFyZ3VtZW50IG5hbWVzIG1hcCB0byB0aGUgb3JpZ2luYWwgbmFtZXMsIHVzZSB0aGUgaGVscCBmaWxlIGZvciB0aGUgbW9kZWwgKGF2YWlsYWJsZSB2aWEgYD9yYW5kX2ZvcmVzdGApIGFzIHdlbGwgYXMgdGhlIGB0cmFuc2xhdGUoKWAgZnVuY3Rpb246DQoNCmBgYHtyIGV2YWwgPSBGQUxTRX0NCg0KcmFuZF9mb3Jlc3QodHJlZXMgPSAxMDAwLCBtaW5fbiA9IDUpICU+JSANCiAgc2V0X2VuZ2luZSgicmFuZ2VyIikgJT4lIA0KICBzZXRfbW9kZSgicmVncmVzc2lvbiIpICU+JSANCiAgdHJhbnNsYXRlKCkNCiM+IFJhbmRvbSBGb3Jlc3QgTW9kZWwgU3BlY2lmaWNhdGlvbiAocmVncmVzc2lvbikNCiM+IA0KIz4gTWFpbiBBcmd1bWVudHM6DQojPiAgIHRyZWVzID0gMTAwMA0KIz4gICBtaW5fbiA9IDUNCiM+IA0KIz4gQ29tcHV0YXRpb25hbCBlbmdpbmU6IHJhbmdlciANCiM+IA0KIz4gTW9kZWwgZml0IHRlbXBsYXRlOg0KIz4gcmFuZ2VyOjpyYW5nZXIoeCA9IG1pc3NpbmdfYXJnKCksIHkgPSBtaXNzaW5nX2FyZygpLCBjYXNlLndlaWdodHMgPSBtaXNzaW5nX2FyZygpLCANCiM+ICAgICBudW0udHJlZXMgPSAxMDAwLCBtaW4ubm9kZS5zaXplID0gbWluX3Jvd3MofjUsIHgpLCBudW0udGhyZWFkcyA9IDEsIA0KIz4gICAgIHZlcmJvc2UgPSBGQUxTRSwgc2VlZCA9IHNhbXBsZS5pbnQoMTBeNSwgMSkpDQoNCmBgYA0KDQoNCjYuIE1vZGVsaW5nIGZ1bmN0aW9ucyBpbiBgcGFyc25pcGAgc2VwYXJhdGUgbW9kZWwgYXJndW1lbnRzIGludG8gdHdvIGNhdGVnb3JpZXM6DQoNCmEuIE1haW4gYXJndW1lbnRzOiBtb3JlIGNvbW1vbmx5IHVzZWQgYW5kIHRlbmQgdG8gYmUgYXZhaWxhYmxlIGFjcm9zcyBlbmdpbmVzLg0KDQpiLiBFbmdpbmUgYXJndW1lbnRzOiBlaXRoZXIgc3BlY2lmaWMgdG8gYSBwYXJ0aWN1bGFyIGVuZ2luZSBvciB1c2VkIG1vcmUgcmFyZWx5Lg0KDQpjLiBFeGFtcGxlOiBpbiB0aGUgdHJhbnNsYXRpb24gb2YgdGhlIHJhbmRvbSBmb3Jlc3QgY29kZSBhYm92ZSwgdGhlIGFyZ3VtZW50cyBgbnVtLnRocmVhZHNgLCBgdmVyYm9zZWAsIGFuZCBgc2VlZGAgd2VyZSBhZGRlZCBieSBkZWZhdWx0LiBUaGVzZSBhcmd1bWVudHMgYXJlIHNwZWNpZmljIHRvIHRoZSByYW5nZXIgaW1wbGVtZW50YXRpb24gb2YgcmFuZG9tIGZvcmVzdCBtb2RlbHMgYW5kIHdvdWxkbuKAmXQgbWFrZSBzZW5zZSBhcyBtYWluIGFyZ3VtZW50cy4gDQoNCmQuIEVuZ2luZS1zcGVjaWZpYyBhcmd1bWVudHMgY2FuIGJlIHNwZWNpZmllZCBpbiBgc2V0X2VuZ2luZSgpYC4gDQoNCigxKSBFeGFtcGxlOiB0byBoYXZlIHRoZSBgcmFuZ2VyOjpyYW5nZXIoKWAgZnVuY3Rpb24gcHJpbnQgb3V0IG1vcmUgaW5mb3JtYXRpb24gYWJvdXQgdGhlIGZpdDoNCg0KYGBge3IgZXZhbCA9IEZBTFNFfQ0KDQpyYW5kX2ZvcmVzdCh0cmVlcyA9IDEwMDAsIG1pbl9uID0gNSkgJT4lIA0KICBzZXRfZW5naW5lKCJyYW5nZXIiLCB2ZXJib3NlID0gVFJVRSkgJT4lIA0KICBzZXRfbW9kZSgicmVncmVzc2lvbiIpIA0KIz4gUmFuZG9tIEZvcmVzdCBNb2RlbCBTcGVjaWZpY2F0aW9uIChyZWdyZXNzaW9uKQ0KIz4gDQojPiBNYWluIEFyZ3VtZW50czoNCiM+ICAgdHJlZXMgPSAxMDAwDQojPiAgIG1pbl9uID0gNQ0KIz4gDQojPiBFbmdpbmUtU3BlY2lmaWMgQXJndW1lbnRzOg0KIz4gICB2ZXJib3NlID0gVFJVRQ0KIz4gDQojPiBDb21wdXRhdGlvbmFsIGVuZ2luZTogcmFuZ2VyDQoNCmBgYA0KDQoNCiMjIyA3LjIgVXNlIHRoZSBNb2RlbCBSZXN1bHRzDQoNCjEuIE9uY2UgdGhlIG1vZGVsIGlzIGNyZWF0ZWQgYW5kIGZpdCwgd2UgY2FuIHVzZSB0aGUgcmVzdWx0cyBpbiBhIHZhcmlldHkgb2Ygd2F5cy4NCg0KYS4gTWlnaHQgd2FudCB0byBwbG90LCBwcmludCwgb3Igb3RoZXJ3aXNlIGV4YW1pbmUgdGhlIG1vZGVsIG91dHB1dC4NCg0KYi4gU2V2ZXJhbCBxdWFudGl0aWVzIGFyZSBzdG9yZWQgaW4gYSBgcGFyc25pcGAgbW9kZWwgb2JqZWN0LCBpbmNsdWRpbmcgdGhlIGZpdHRlZCBtb2RlbC4gVGhpcyBjYW4gYmUgZm91bmQgaW4gYW4gZWxlbWVudCBjYWxsZWQgYGZpdGAsIHdoaWNoIGNhbiBiZSByZXR1cm5lZCB1c2luZyB0aGUgYHB1cnJyOjpwbHVjaygpYCBmdW5jdGlvbjoNCg0KYGBge3IgZXZhbCA9IEZBTFNFfQ0KDQpsbV9mb3JtX2ZpdCAlPiUgcGx1Y2soImZpdCIpDQojPiANCiM+IENhbGw6DQojPiBzdGF0czo6bG0oZm9ybXVsYSA9IFNhbGVfUHJpY2UgfiBMb25naXR1ZGUgKyBMYXRpdHVkZSwgZGF0YSA9IGRhdGEpDQojPiANCiM+IENvZWZmaWNpZW50czoNCiM+IChJbnRlcmNlcHQpICAgIExvbmdpdHVkZSAgICAgTGF0aXR1ZGUgIA0KIz4gICAgIC0zMTYuMzcgICAgICAgIC0yLjA4ICAgICAgICAgMy4wMQ0KDQpgYGANCg0KYy4gTm9ybWFsIG1ldGhvZHMgY2FuIGJlIGFwcGxpZWQgdG8gdGhpcyBvYmplY3QsIHN1Y2ggYXMgcHJpbnRpbmcsIHBsb3R0aW5nLCBhbmQgc28gb246DQoNCmBgYHtyIGV2YWwgPSBGQUxTRX0NCmxtX2Zvcm1fZml0ICU+JSBwbHVjaygiZml0IikgJT4lIHZjb3YoKQ0KIz4gICAgICAgICAgICAgKEludGVyY2VwdCkgIExvbmdpdHVkZSAgIExhdGl0dWRlDQojPiAoSW50ZXJjZXB0KSAgICAgMjIxLjc2MyAgMS42OTQ0MDYwIC0xLjUwMDk5NjUNCiM+IExvbmdpdHVkZSAgICAgICAgIDEuNjk0ICAwLjAxNzc5MTQgLTAuMDAwNjc0OA0KIz4gTGF0aXR1ZGUgICAgICAgICAtMS41MDEgLTAuMDAwNjc0OCAgMC4wMzQyMDUzDQpgYGANCg0KDQoqTm90ZToqDQoNCisgTmV2ZXIgcGFzcyB0aGUgYGZpdGAgZWxlbWVudCBvZiBhIGBwYXJzbmlwYCBtb2RlbCB0byBhIG1vZGVsIHByZWRpY3Rpb24gZnVuY3Rpb24sIGUuZy4sIHVzZSBgcHJlZGljdChsbV9mb3JtX2ZpdClgIGJ1dCBkbyBub3QgdXNlIGBwcmVkaWN0KGxtX2Zvcm1fZml0JGZpdClgLiANCg0KKyBJZiB0aGUgZGF0YSB3ZXJlIHByZXByb2Nlc3NlZCBpbiBhbnkgd2F5LCBpbmNvcnJlY3QgcHJlZGljdGlvbnMgd2lsbCBiZSBnZW5lcmF0ZWQgKHNvbWV0aW1lcywgd2l0aG91dCBlcnJvcnMpLiBUaGUgdW5kZXJseWluZyBtb2RlbOKAmXMgcHJlZGljdGlvbiBmdW5jdGlvbiBoYXMgbm8gaWRlYSBpZiBhbnkgdHJhbnNmb3JtYXRpb25zIGhhdmUgYmVlbiBtYWRlIHRvIHRoZSBkYXRhIHByaW9yIHRvIHJ1bm5pbmcgdGhlIG1vZGVsLiANCg0KDQoyLiBJc3N1ZXMgd2l0aCBzb21lIGV4aXN0aW5nIG1ldGhvZHMgaW4gYmFzZSBSOiB0aGUgcmVzdWx0cyBhcmUgc3RvcmVkIGluIGEgbWFubmVyIHRoYXQgbWF5IG5vdCBiZSB0aGUgbW9zdCB1c2VmdWwuIA0KDQphLiBFeGFtcGxlOiBgc3VtbWFyeSgpYCBtZXRob2QgZm9yIGBsbWAgb2JqZWN0cyBjYW4gYmUgdXNlZCB0byBwcmludCB0aGUgcmVzdWx0cyBvZiB0aGUgbW9kZWwgZml0LCBpbmNsdWRpbmcgYSB0YWJsZSB3aXRoIHBhcmFtZXRlciB2YWx1ZXMsIHRoZWlyIHVuY2VydGFpbnR5IGVzdGltYXRlcywgYW5kIHAtdmFsdWVzLiBUaGVzZSBwYXJ0aWN1bGFyIHJlc3VsdHMgY2FuIGFsc28gYmUgc2F2ZWQ6DQoNCmBgYHtyIGV2YWwgPSBGQUxTRX0NCm1vZGVsX3JlcyA8LSANCiAgbG1fZm9ybV9maXQgJT4lIA0KICBwbHVjaygiZml0IikgJT4lIA0KICBzdW1tYXJ5KCkNCg0KIyBUaGUgbW9kZWwgY29lZmZpY2llbnQgdGFibGUgaXMgYWNjZXNzaWJsZSB2aWEgdGhlIGBjb2VmYCBtZXRob2QuDQpwYXJhbV9lc3QgPC0gY29lZihtb2RlbF9yZXMpDQpjbGFzcyhwYXJhbV9lc3QpDQojPiBbMV0gIm1hdHJpeCIgImFycmF5Ig0KcGFyYW1fZXN0DQojPiAgICAgICAgICAgICBFc3RpbWF0ZSBTdGQuIEVycm9yIHQgdmFsdWUgIFByKD58dHwpDQojPiAoSW50ZXJjZXB0KSAtMzE2LjM2OCAgICAxNC44OTE3ICAtMjEuMjQgMy4wNDBlLTkxDQojPiBMb25naXR1ZGUgICAgIC0yLjA4MyAgICAgMC4xMzM0ICAtMTUuNjIgMy4yMTVlLTUyDQojPiBMYXRpdHVkZSAgICAgICAzLjAxMCAgICAgMC4xODQ5ICAgMTYuMjcgMi41ODVlLTU2DQpgYGANCg0KKk5vdGU6Kg0KDQorIFRoZSBvYmplY3QgaXMgYSBudW1lcmljIG1hdHJpeC4gVGhpcyBkYXRhIHN0cnVjdHVyZSB3YXMgbW9zdGx5IGxpa2VseSBjaG9zZW4gc2luY2UgYWxsIG9mIHRoZSBjYWxjdWxhdGVkIHJlc3VsdHMgYXJlIG51bWVyaWMgYW5kIGEgbWF0cml4IG9iamVjdCBpcyBzdG9yZWQgbW9yZSBlZmZpY2llbnRseSB0aGFuIGEgZGF0YSBmcmFtZS4gDQoNCisgVGhlIG5vbi1udW1lcmljIGRhdGEgKHRoZSBsYWJlbHMgZm9yIHRoZSBjb2VmZmljaWVudHMpIGFyZSBjb250YWluZWQgaW4gdGhlIHJvdyBuYW1lcy4gS2VlcGluZyB0aGUgcGFyYW1ldGVyIGxhYmVscyBhcyByb3cgbmFtZXMgaXMgdmVyeSBjb25zaXN0ZW50IHdpdGggdGhlIGNvbnZlbnRpb25zIGluIHRoZSBvcmlnaW5hbCBTIGxhbmd1YWdlLg0KDQoNCisgQ29tcGxpY2F0aW9uczogDQoNCi0gV2hlbiBjcmVhdGluZyBhIHZpc3VhbGl6YXRpb24gb2YgdGhlIHBhcmFtZXRlcnMgdmFsdWVzLCB3ZSBoYXZlIHRvIGNvbnZlcnQgdGhlIHBhcmFtZXRlciBtYXRyaXggdG8gYSBkYXRhIGZyYW1lLCB3aGljaCByZXF1aXJlcyBhZGRpbmcgdGhlIHJvdyBuYW1lcyBhcyBhIGNvbHVtbiBzbyB0aGF0IHRoZXkgY2FuIGJlIHVzZWQgaW4gYSBwbG90LiBIb3dldmVyLCBzZXZlcmFsIG9mIHRoZSBleGlzdGluZyBtYXRyaXggY29sdW1uIG5hbWVzIHdvdWxkIG5vdCBiZSB2YWxpZCBSIGNvbHVtbiBuYW1lcyBmb3Igb3JkaW5hcnkgZGF0YSBmcmFtZXMgKGUuZy4gIlByKD58dHwpIi4gDQoNCi0gVGhlIGNvbnNpc3RlbmN5IG9mIHRoZSBjb2x1bW4gbmFtZXMuIEZvciBgbG1gIG9iamVjdHMsIHRoZSBjb2x1bW4gZm9yIHRoZSB0ZXN0IHN0YXRpc3RpYyBpcyAiUHIoPnx0fCkiLCBidXQgZm9yIG90aGVyIG1vZGVscywgYSBkaWZmZXJlbnQgdGVzdCBtaWdodCBiZSB1c2VkIGFuZCwgYXMgYSByZXN1bHQsIHRoZSBjb2x1bW4gbmFtZSB3b3VsZCBiZSBkaWZmZXJlbnQgKGUuZy4sICJQcig+fHp8KSIpIGFuZCB0aGUgdHlwZSBvZiB0ZXN0IHdvdWxkIGJlIGVuY29kZWQgaW4gdGhlIGNvbHVtbiBuYW1lLg0KDQotIFRoZSBtYXRyaXggaXMgbm90IGEgaGlnaGx5IHJldXNhYmxlIGRhdGEgc3RydWN0dXJlIG1vc3RseSBiZWNhdXNlIGl0IGNvbnN0cmFpbnMgdGhlIGRhdGEgdG8gYmUgb2YgYSBzaW5nbGUgdHlwZSAoZS5nLiBudW1lcmljKS4gDQoNCi0gS2VlcGluZyBzb21lIGRhdGEgaW4gdGhlIGRpbWVuc2lvbiBuYW1lcyBpcyBhbHNvIHByb2JsZW1hdGljIHNpbmNlIHRob3NlIGRhdGEgbXVzdCBiZSBleHRyYWN0ZWQgdG8gYmUgb2YgZ2VuZXJhbCB1c2UuDQoNCisgU29sdXRpb25zOiBUaGUgYGJyb29tYCBwYWNrYWdlIGhhcyBtZXRob2RzIHRvIGNvbnZlcnQgbWFueSB0eXBlcyBvZiBtb2RlbCBvYmplY3RzIHRvIGEgdGlkeSBzdHJ1Y3R1cmUuIA0KDQotIEV4YW1wbGU6IHVzaW5nIHRoZSBgdGlkeSgpYCBtZXRob2Qgb24gdGhlIGxpbmVhciBtb2RlbCBwcm9kdWNlczoNCg0KYGBge3IgZXZhbCA9IEZBTFNFfQ0KdGlkeShsbV9mb3JtX2ZpdCkNCiM+ICMgQSB0aWJibGU6IDMgeCA1DQojPiAgIHRlcm0gICAgICAgIGVzdGltYXRlIHN0ZC5lcnJvciBzdGF0aXN0aWMgIHAudmFsdWUNCiM+ICAgPGNocj4gICAgICAgICAgPGRibD4gICAgIDxkYmw+ICAgICA8ZGJsPiAgICA8ZGJsPg0KIz4gMSAoSW50ZXJjZXB0KSAgLTMxNi4gICAgICAxNC45ICAgICAgIC0yMS4yIDMuMDRlLTkxDQojPiAyIExvbmdpdHVkZSAgICAgIC0yLjA4ICAgICAwLjEzMyAgICAgLTE1LjYgMy4yMWUtNTINCiM+IDMgTGF0aXR1ZGUgICAgICAgIDMuMDEgICAgIDAuMTg1ICAgICAgMTYuMyAyLjU4ZS01Ng0KYGBgDQoNCi0tIFRoZSBjb2x1bW4gbmFtZXMgYXJlIHN0YW5kYXJkaXplZCBhY3Jvc3MgbW9kZWxzIGFuZCBkbyBub3QgY29udGFpbiBhbnkgYWRkaXRpb25hbCBkYXRhIChzdWNoIGFzIHRoZSB0eXBlIG9mIHN0YXRpc3RpY2FsIHRlc3QpLiANCg0KLS0gVGhlIGRhdGEgcHJldmlvdXNseSBjb250YWluZWQgaW4gdGhlIHJvdyBuYW1lcyBhcmUgbm93IGluIGEgY29sdW1uIGNhbGxlZCB0ZXJtcyBhbmQgc28gb24uIE9uZSBpbXBvcnRhbnQgcHJpbmNpcGxlIGluIHRoZSBgdGlkeW1vZGVsc2AgZWNvc3lzdGVtIGlzIHRoYXQgYSBmdW5jdGlvbiBzaG91bGQgcmV0dXJuIHZhbHVlcyB0aGF0IGFyZSBfcHJlZGljdGFibGVfLCBfY29uc2lzdGVudF8sIGFuZCBfdW5zdXJwcmlzaW5nXy4NCg0KIyMjIDcuMyBNYWtlIFByZWRpY3Rpb25zDQoNCiMjIyA3LjQgUGFyc25pcC1hZGphY2VudCBQYWNrYWdlcw0KDQojIyMgNy41IENoYXB0ZXIgU3VtbWFyeQ0KDQo=</div>
 
 
 
