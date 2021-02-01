@@ -363,7 +363,64 @@ tidy(lm_form_fit)
 
 ### 7.3 Make Predictions
 
+1. Difference between `parsnip` and conventional R modeling functions: the format of values returned from `predict()`. 
+
+a. For predictions, `parsnip` always conforms to the following rules:
+
+(1) The results are always a tibble.
+
+(2) The column names of the tibble are always predictable.
+
+The predictable column names for different types of predictions are:
+![](Fig7.3PredColNames.PNG)
+
+(3) There are always as many rows in the tibble as there are in the input data set.
+
+Example: 
+
+```{r eval = FALSE}
+ames_test_small <- ames_test %>% slice(1:5)
+predict(lm_form_fit, new_data = ames_test_small)
+#> # A tibble: 5 x 1
+#>   .pred
+#>   <dbl>
+#> 1  5.22
+#> 2  5.29
+#> 3  5.28
+#> 4  5.26
+#> 5  5.24
+```
+
+(4) The row order of the predictions are always the same as the original data.
+
+(5) Rule (1)-(3) make it easier to merge predictions with the original data:
+
+```{r eval = FALSE}
+
+ames_test_small %>% 
+  select(Sale_Price) %>% 
+  bind_cols(predict(lm_form_fit, ames_test_small)) %>% 
+  # Add 95% prediction intervals to the results:
+  bind_cols(predict(lm_form_fit, ames_test_small, type = "pred_int")) 
+#> # A tibble: 5 x 4
+#>   Sale_Price .pred .pred_lower .pred_upper
+#>        <dbl> <dbl>       <dbl>       <dbl>
+#> 1       5.39  5.22        4.90        5.53
+#> 2       5.28  5.29        4.97        5.60
+#> 3       5.27  5.28        4.96        5.59
+#> 4       5.60  5.26        4.95        5.58
+#> 5       5.02  5.24        4.93        5.55
+```
+
+
+
 ### 7.4 Parsnip-adjacent Packages
+
+1. The `parsnip` package itself contains interfaces to a number of models. 
+2. There are other tidymodels packages that have parsnip model definitions for other sets of models:
+
+a. `discrim` package: has model definitions for the set of classification techniques called discriminant analysis methods (such as linear or quadratic discriminant analysis). In this way, the package dependencies required for installing parsnip are reduced. 
 
 ### 7.5 Chapter Summary
 
+1. The `parsnip` package provides a common interface for models across R packages using a standard syntax. The interface and resulting objects have a predictable structure.
