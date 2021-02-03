@@ -6,6 +6,26 @@ editor_options:
   chunk_output_type: inline
 ---
 
+# Class Notes
+
+1. Model of the Week: Regularized Linear Regression
+
+a. Regression (cts outcome)
+
+b. Mechanistic
+
+c. Possible Goals: predictive
+
+d. Tuning Parameters: Lambda 
+
+e. Performance Measure(s)
+
+(1) RSE (residual standard error)
+
+(2) $R^{2}$
+
+(3) MSE (mean squared error)
+
 # Basics
 ## CHAPTER 7 Fitting Models with Parsnip
 
