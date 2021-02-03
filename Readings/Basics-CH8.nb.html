@@ -1765,26 +1765,497 @@ summary {
 <h1>Basics</h1>
 <div id="chapter-8-a-model-workflow" class="section level2">
 <h2>CHAPTER 8 A Model Workflow</h2>
+<ol style="list-style-type: decimal">
+<li>This chapter will introduce a new object called a <em>model workflow</em>.</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li><p>The purpose of this object is to encapsulate the major pieces of the modeling process.</p></li>
+<li><p>The workflow is important in two ways:</p></li>
+</ol>
+<ol style="list-style-type: decimal">
+<li><p>Using a workflow object encourages good methodlogy since it is a single point of entryto the estimation components of a data analysis.</p></li>
+<li><p>It enables the user to better oranize their projects.</p></li>
+</ol>
 <div id="where-does-a-model-begin-and-end" class="section level3">
 <h3>8.1 Where Does a Model Begin and End?</h3>
+<ol style="list-style-type: decimal">
+<li>So far the term “the model” refers to a structural equaiton that relates some predictors to one or more outcomes.</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Example: Linear Model: linear regression</li>
+</ol>
+<p>Outcome Data: denoted as <span class="math inline">\(y_{i}, i = 1, 2, ..., n\)</span>. There are <span class="math inline">\(n\)</span> samples in the training set.</p>
+<p>Predictors: suppose there are <span class="math inline">\(p\)</span> predictors denoted by <span class="math inline">\(x_{i1}, ..., x_{ip}\)</span>.</p>
+<p>Linear Regression Model Equation: <span class="math inline">\(\hat{y}_{i} = \hat{\beta}_{0} + \hat{\beta}_{1}x_{i1} + ... + \hat{\beta}_{p}x_{ip}\)</span>.</p>
+<p><em>Note</em>:</p>
+<ul>
+<li>While this is a linear model, it is only linear in the parameters not in the predictors. The predictors could be nonlinear terms such as <span class="math inline">\(\log(x_{i})\)</span>.</li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>The conventional way of thinking about the modeling process is that it only includes the model fit.</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li><p>For some data sets, fitting the model itself may be the entire modeling process.</p></li>
+<li><p>For other data sets, there are a variety of choices and additional steps that often occur <em>before</em> the model is fit:</p></li>
+</ol>
+<ol style="list-style-type: decimal">
+<li><p>Select Predictors: common to start with more than <span class="math inline">\(p\)</span> predictors and exclude some predictors through EDA, using domain knowledge or using a feature selection algorithm to make a data-driven choice for the minimum predictor set for the model.</p></li>
+<li><p>Dealt with Missing Values: missing value could be <em>imputed</em> using other values in the data.</p></li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Example: if <span class="math inline">\(x_{1}\)</span> were issing but was correlated with predictors <span class="math inline">\(x_{2}, x_{3}\)</span>, an imputation method could estimate the missing <span class="math inline">\(x_{1}\)</span> observation from the values of <span class="math inline">\(x_{2}, x_{3}\)</span>.</li>
+</ol>
+<ol start="3" style="list-style-type: decimal">
+<li>Transform Predictors:</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li><p>Transform the scale of a predictor: using a priori information on what the new scale should be or estimate the proper scale using a statistical transformation technique, the existing data, and some optimization criterion.</p></li>
+<li><p>Take groups of predictors and transform them into new features that are used as the predictors. This often happens in PCA.</p></li>
+</ol>
+<ol start="3" style="list-style-type: lower-alpha">
+<li>There are also choices and additional steps that often occur <em>after</em> the model is fit:</li>
+</ol>
+<ol style="list-style-type: decimal">
+<li>Hard Prediction: use a 50% probability cutoff to create a discreate classs prediction known as a “hard prediction” for the binary outcome (e.g. event v.s. non-event) in a classification model.</li>
+</ol>
+<ol start="3" style="list-style-type: decimal">
+<li>The model workflow is the borader modeling process that include any preprocessing steps, the model fit itself, and potential post-processing activities.</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li><p>In other software, such as Python or Spark, similar collections of steps are called <em>pipelines</em>.</p></li>
+<li><p>In tidymodels, the term “pipeline” already connotes a sequence of operations chained together with a pipe operator (such as <code>%&gt;%</code>).</p></li>
+</ol>
+<ol style="list-style-type: decimal">
+<li>We will call the sequence of computational operations related to modeling <em>workflows</em>.</li>
+</ol>
+<ol start="4" style="list-style-type: decimal">
+<li><p>The <em>workflow</em> must include all significant estimation steps.</p></li>
+<li><p>Example: PCA Signal Extraction: a way to replace correlated predictors with new artificial features that are uncorrelated and capture most of the information in the original set. The new features would be used as the predictors and least squares regression could be used to estimate the model parameters.</p></li>
+</ol>
+<p>Model Workflow:</p>
+<p><img src="data:image/png;base64,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j3el7CDsAvCNsAtUJ5VhV3/4ra2troQ0Ul/dRYsWuVJ2EHYB+EbYBaqTyrArCruff/65KyFtZsyYYT755BNXyg7CLgDfCLtAdVIbdlevXm1H8yN9jh8/nskuDELYBeAbYReoTmrDrmRxgFMeLFmyxM6xm0WEXQC+EXbTRd9vEydONM3Nzea6664zgwYNMgMGDDD/9m//Zv9/+umnmzPOOMP+P96vTeVLL73UjBw50jzxxBPmtddey9yMRY2S6rCrQWpZW2426xQGs3yRQtgF4BthN1yHDh0y06ZNswFVYVXbbbfdZv77v//bzJ8/33z44YfmxIkT7uie7du3z+aayZMnmwcffNBccsklNghffvnlZsyYMZmtKKq1VIddUXBSwEA6LFy40HZBySrCLgDfCLth2bJli/nFL35hzjzzTHP22Webn/3sZ2bZsmXu3trYuXOnmTRpkrnxxhtt+L3lllvMnDlz3L3oSerD7tq1a82rr77qSgiZBqS1tbW5UjYRdgH4RthtPNXO/uY3vzEDBw40Q4YMsd0UGjlIXrW/DzzwgA2+qlVesWKFuweVpD7sipoQNm/e7EoI1b333ms2bdrkStlE2AXgG2G3cT744ANz55132r61jz32mDl48KC7JxxqMR0+fLgN4nxOKstE2D127Jgd3a8TAsKkjvbXX3+9+fa3v22bYcaOHWubffS7yxLCLgDfCLv1t2bNGju47IILLjCvvPKK2xs2DWb7yU9+Ymt7VQuNkkyEXdm2bVvmm8jT6r333jOzZ892pegkokCoq2VdiY4YMcJMmDAhE315CbsAfCPs1s+OHTvMTTfdZC6++GI7c1Aaffnll+Y///M/bejVQDdkKOzKypUrzcyZM10JIVD3ku4uQtQPavny5ebJJ580N998sznvvPNsP6QXXnghlV1TCLuV6d/lzTfftAM7gEp0sasxGOiMsFsfo0ePtrMpZGUckPoUq/vgOeeck/uZqzIVdkULTcydO9eV0EgfffSRrbHty7Qr6g+l/kePPvqoGTZsmLnsssvMww8/bF5++WWza9cud1S4CLudaRSx+tXrC0Qr56m2RAuLAHLgwAF7ztbIcrUAzZs3z07nhBLCbm2pm5365Gq6sCzSReSFF15o7r//frcnfzIXdkU1SGnpY5NVqsFT0K22H/XHH39svwBHjRplR8CqE/4vf/lL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" /></p>
+<p><em>Note:</em></p>
+<ul>
+<li>The PCA preprocessing is part of the modeling process.</li>
+</ul>
 </div>
 <div id="workflow-basics" class="section level3">
 <h3>8.2 Workflow Basics</h3>
+<ol style="list-style-type: decimal">
+<li><p>The <code>workflows</code> package allows the user to bind modeling and preprocessing objects together.</p></li>
+<li><p>Example: Ames Data</p></li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxpYnJhcnkodGlkeW1vZGVscykgICMgSW5jbHVkZXMgdGhlIHdvcmtmbG93cyBwYWNrYWdlIiwiIiwibG1fbW9kZWwgPC0gIiwiICBsaW5lYXJfcmVnKCkgJT4lICIsIiAgc2V0X2VuZ2luZShcImxtXCIpIl19 -->
+<pre class="r"><code>library(tidymodels)  # Includes the workflows package
+
+lm_model &lt;- 
+  linear_reg() %&gt;% 
+  set_engine(&quot;lm&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<ol style="list-style-type: lower-alpha">
+<li>A workflow always requires a <code>parsnip</code> model object:</li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxtX3dmbG93IDwtICIsIiAgd29ya2Zsb3coKSAlPiUgIiwiICBhZGRfbW9kZWwobG1fbW9kZWwpIiwiIiwibG1fd2Zsb3ciLCIjPiDilZDilZAgV29ya2Zsb3cg4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQIiwiIz4gUHJlcHJvY2Vzc29yOiBOb25lIiwiIz4gTW9kZWw6IGxpbmVhcl9yZWcoKSIsIiM+ICIsIiM+IOKUgOKUgCBNb2RlbCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAiLCIjPiBMaW5lYXIgUmVncmVzc2lvbiBNb2RlbCBTcGVjaWZpY2F0aW9uIChyZWdyZXNzaW9uKSIsIiM+ICIsIiM+IENvbXB1dGF0aW9uYWwgZW5naW5lOiBsbSJdfQ== -->
+<pre class="r"><code>lm_wflow &lt;- 
+  workflow() %&gt;% 
+  add_model(lm_model)
+
+lm_wflow
+#&gt; ══ Workflow ═════════════════════════════════════════════════════════════════════════
+#&gt; Preprocessor: None
+#&gt; Model: linear_reg()
+#&gt; 
+#&gt; ── Model ────────────────────────────────────────────────────────────────────────────
+#&gt; Linear Regression Model Specification (regression)
+#&gt; 
+#&gt; Computational engine: lm</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<ol start="2" style="list-style-type: lower-alpha">
+<li>Notice that we have not yet specified how this workflow should preprocess the data: <code>Preprocessor: None</code>.</li>
+</ol>
+<ol style="list-style-type: decimal">
+<li>If our model were very simple, a standard R formula can be used as a preprocessor:</li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxtX3dmbG93IDwtICIsIiAgbG1fd2Zsb3cgJT4lICIsIiAgYWRkX2Zvcm11bGEoU2FsZV9QcmljZSB+IExvbmdpdHVkZSArIExhdGl0dWRlKSIsIiIsImxtX3dmbG93IiwiIz4g4pWQ4pWQIFdvcmtmbG93IOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkCIsIiM+IFByZXByb2Nlc3NvcjogRm9ybXVsYSIsIiM+IE1vZGVsOiBsaW5lYXJfcmVnKCkiLCIjPiAiLCIjPiDilIDilIAgUHJlcHJvY2Vzc29yIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCIsIiM+IFNhbGVfUHJpY2UgfiBMb25naXR1ZGUgKyBMYXRpdHVkZSIsIiM+ICIsIiM+IOKUgOKUgCBNb2RlbCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAiLCIjPiBMaW5lYXIgUmVncmVzc2lvbiBNb2RlbCBTcGVjaWZpY2F0aW9uIChyZWdyZXNzaW9uKSIsIiM+ICIsIiM+IENvbXB1dGF0aW9uYWwgZW5naW5lOiBsbSJdfQ== -->
+<pre class="r"><code>lm_wflow &lt;- 
+  lm_wflow %&gt;% 
+  add_formula(Sale_Price ~ Longitude + Latitude)
+
+lm_wflow
+#&gt; ══ Workflow ═════════════════════════════════════════════════════════════════════════
+#&gt; Preprocessor: Formula
+#&gt; Model: linear_reg()
+#&gt; 
+#&gt; ── Preprocessor ─────────────────────────────────────────────────────────────────────
+#&gt; Sale_Price ~ Longitude + Latitude
+#&gt; 
+#&gt; ── Model ────────────────────────────────────────────────────────────────────────────
+#&gt; Linear Regression Model Specification (regression)
+#&gt; 
+#&gt; Computational engine: lm</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<ol start="3" style="list-style-type: lower-alpha">
+<li>Workflows have a <code>fit()</code> method that can be used to create the model. Using the objects create in Section 7.5:</li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxtX2ZpdCA8LSBmaXQobG1fd2Zsb3csIGFtZXNfdHJhaW4pIiwibG1fZml0IiwiIz4g4pWQ4pWQIFdvcmtmbG93IFt0cmFpbmVkXSDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZAiLCIjPiBQcmVwcm9jZXNzb3I6IEZvcm11bGEiLCIjPiBNb2RlbDogbGluZWFyX3JlZygpIiwiIz4gIiwiIz4g4pSA4pSAIFByZXByb2Nlc3NvciDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAiLCIjPiBTYWxlX1ByaWNlIH4gTG9uZ2l0dWRlICsgTGF0aXR1ZGUiLCIjPiAiLCIjPiDilIDilIAgTW9kZWwg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAIiwiIz4gIiwiIz4gQ2FsbDoiLCIjPiBzdGF0czo6bG0oZm9ybXVsYSA9IC4ueSB+IC4sIGRhdGEgPSBkYXRhKSIsIiM+ICIsIiM+IENvZWZmaWNpZW50czoiLCIjPiAoSW50ZXJjZXB0KSAgICBMb25naXR1ZGUgICAgIExhdGl0dWRlICAiLCIjPiAgICAgLTMxNi4zNyAgICAgICAgLTIuMDggICAgICAgICAzLjAxIl19 -->
+<pre class="r"><code>lm_fit &lt;- fit(lm_wflow, ames_train)
+lm_fit
+#&gt; ══ Workflow [trained] ═══════════════════════════════════════════════════════════════
+#&gt; Preprocessor: Formula
+#&gt; Model: linear_reg()
+#&gt; 
+#&gt; ── Preprocessor ─────────────────────────────────────────────────────────────────────
+#&gt; Sale_Price ~ Longitude + Latitude
+#&gt; 
+#&gt; ── Model ────────────────────────────────────────────────────────────────────────────
+#&gt; 
+#&gt; Call:
+#&gt; stats::lm(formula = ..y ~ ., data = data)
+#&gt; 
+#&gt; Coefficients:
+#&gt; (Intercept)    Longitude     Latitude  
+#&gt;     -316.37        -2.08         3.01</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<ol start="4" style="list-style-type: lower-alpha">
+<li>We can also use <code>predict()</code> on the fitted workflow:</li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbInByZWRpY3QobG1fZml0LCBhbWVzX3Rlc3QgJT4lIHNsaWNlKDE6MykpIiwiIz4gIyBBIHRpYmJsZTogMyB4IDEiLCIjPiAgIC5wcmVkIiwiIz4gICA8ZGJsPiIsIiM+IDEgIDUuMjIiLCIjPiAyICA1LjI5IiwiIz4gMyAgNS4yOCJdfQ== -->
+<pre class="r"><code>predict(lm_fit, ames_test %&gt;% slice(1:3))
+#&gt; # A tibble: 3 x 1
+#&gt;   .pred
+#&gt;   &lt;dbl&gt;
+#&gt; 1  5.22
+#&gt; 2  5.29
+#&gt; 3  5.28</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<ol start="5" style="list-style-type: lower-alpha">
+<li>Both the model and preprocessor can be removed or updated:</li>
+</ol>
+<p>Note that, in this new object, the output shows that the previous fitted model was removed since the new formula is inconsistent with the previous model fit.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxtX2ZpdCAlPiUgdXBkYXRlX2Zvcm11bGEoU2FsZV9QcmljZSB+IExvbmdpdHVkZSkiLCIjPiDilZDilZAgV29ya2Zsb3cg4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQIiwiIz4gUHJlcHJvY2Vzc29yOiBGb3JtdWxhIiwiIz4gTW9kZWw6IGxpbmVhcl9yZWcoKSIsIiM+ICIsIiM+IOKUgOKUgCBQcmVwcm9jZXNzb3Ig4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAIiwiIz4gU2FsZV9QcmljZSB+IExvbmdpdHVkZSIsIiM+ICIsIiM+IOKUgOKUgCBNb2RlbCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAiLCIjPiBMaW5lYXIgUmVncmVzc2lvbiBNb2RlbCBTcGVjaWZpY2F0aW9uIChyZWdyZXNzaW9uKSIsIiM+ICIsIiM+IENvbXB1dGF0aW9uYWwgZW5naW5lOiBsbSJdfQ== -->
+<pre class="r"><code>lm_fit %&gt;% update_formula(Sale_Price ~ Longitude)
+#&gt; ══ Workflow ═════════════════════════════════════════════════════════════════════════
+#&gt; Preprocessor: Formula
+#&gt; Model: linear_reg()
+#&gt; 
+#&gt; ── Preprocessor ─────────────────────────────────────────────────────────────────────
+#&gt; Sale_Price ~ Longitude
+#&gt; 
+#&gt; ── Model ────────────────────────────────────────────────────────────────────────────
+#&gt; Linear Regression Model Specification (regression)
+#&gt; 
+#&gt; Computational engine: lm</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="workflow-and-recipes" class="section level3">
+<h3>8.3 Workflow and Recipes</h3>
+<ol style="list-style-type: decimal">
+<li>Instead of using model formulas, <code>recipe</code> objects can also be used to preprocess data for modeling.</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Example: Ames Data</li>
+</ol>
+<ol style="list-style-type: decimal">
+<li>The recipe object <code>ames_rec</code> encapsulated several specified preprocessing and feature engineering steps. We will attach it to the workflow:</li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxtX3dmbG93ICU+JSAiLCIgIGFkZF9yZWNpcGUoYW1lc19yZWMpIiwiIz4gRXJyb3I6IEEgcmVjaXBlIGNhbm5vdCBiZSBhZGRlZCB3aGVuIGEgZm9ybXVsYSBhbHJlYWR5IGV4aXN0cy4iXX0= -->
+<pre class="r"><code>lm_wflow %&gt;% 
+  add_recipe(ames_rec)
+#&gt; Error: A recipe cannot be added when a formula already exists.</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>That did not work! We can only have one preprocessing method at a time, so we need to remove the formula before adding the recipe.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxtX3dmbG93IDwtICIsIiAgbG1fd2Zsb3cgJT4lICIsIiAgcmVtb3ZlX2Zvcm11bGEoKSAlPiUgIiwiICBhZGRfcmVjaXBlKGFtZXNfcmVjKSIsImxtX3dmbG93IiwiIz4g4pWQ4pWQIFdvcmtmbG93IOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkCIsIiM+IFByZXByb2Nlc3NvcjogUmVjaXBlIiwiIz4gTW9kZWw6IGxpbmVhcl9yZWcoKSIsIiM+ICIsIiM+IOKUgOKUgCBQcmVwcm9jZXNzb3Ig4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAIiwiIz4gNSBSZWNpcGUgU3RlcHMiLCIjPiAiLCIjPiDil48gc3RlcF9sb2coKSIsIiM+IOKXjyBzdGVwX290aGVyKCkiLCIjPiDil48gc3RlcF9kdW1teSgpIiwiIz4g4pePIHN0ZXBfaW50ZXJhY3QoKSIsIiM+IOKXjyBzdGVwX25zKCkiLCIjPiAiLCIjPiDilIDilIAgTW9kZWwg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAIiwiIz4gTGluZWFyIFJlZ3Jlc3Npb24gTW9kZWwgU3BlY2lmaWNhdGlvbiAocmVncmVzc2lvbikiLCIjPiAiLCIjPiBDb21wdXRhdGlvbmFsIGVuZ2luZTogbG0iXX0= -->
+<pre class="r"><code>lm_wflow &lt;- 
+  lm_wflow %&gt;% 
+  remove_formula() %&gt;% 
+  add_recipe(ames_rec)
+lm_wflow
+#&gt; ══ Workflow ═════════════════════════════════════════════════════════════════════════
+#&gt; Preprocessor: Recipe
+#&gt; Model: linear_reg()
+#&gt; 
+#&gt; ── Preprocessor ─────────────────────────────────────────────────────────────────────
+#&gt; 5 Recipe Steps
+#&gt; 
+#&gt; ● step_log()
+#&gt; ● step_other()
+#&gt; ● step_dummy()
+#&gt; ● step_interact()
+#&gt; ● step_ns()
+#&gt; 
+#&gt; ── Model ────────────────────────────────────────────────────────────────────────────
+#&gt; Linear Regression Model Specification (regression)
+#&gt; 
+#&gt; Computational engine: lm</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<ol start="2" style="list-style-type: decimal">
+<li>We described the <code>prep()</code>, <code>bake()</code>, and <code>juice()</code> functions for using the recipe with a modeling function. This can be onerous, so the <code>fit()</code> method for workflow objects automates this process:</li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbIiMgRG9lcyBgcHJlcCgpYCwgYGp1aWNlKClgLCBhbmQgYGZpdCgpYCBpbiBvbmUgc3RlcDoiLCJsbV9maXQgPC0gZml0KGxtX3dmbG93LCBhbWVzX3RyYWluKSIsIiIsIiMgRG9lcyBgYmFrZSgpYCBhbmQgYHByZWRpY3QoKWAgYXV0b21hdGljYWxseToiLCJwcmVkaWN0KGxtX2ZpdCwgYW1lc190ZXN0ICU+JSBzbGljZSgxOjMpKSIsIiM+ICMgQSB0aWJibGU6IDMgeCAxIiwiIz4gICAucHJlZCIsIiM+ICAgPGRibD4iLCIjPiAxICA1LjMxIiwiIz4gMiAgNS4zMCIsIiM+IDMgIDUuMTciXX0= -->
+<pre class="r"><code># Does `prep()`, `juice()`, and `fit()` in one step:
+lm_fit &lt;- fit(lm_wflow, ames_train)
+
+# Does `bake()` and `predict()` automatically:
+predict(lm_fit, ames_test %&gt;% slice(1:3))
+#&gt; # A tibble: 3 x 1
+#&gt;   .pred
+#&gt;   &lt;dbl&gt;
+#&gt; 1  5.31
+#&gt; 2  5.30
+#&gt; 3  5.17</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<ol start="3" style="list-style-type: decimal">
+<li>If we need the bare model object or recipe, there are pull_* functions that can retrieve them:</li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbIiMgR2V0IHRoZSByZWNpcGUgYW5kIHJ1biBgdGlkeSgpYCBtZXRob2Q6ICIsImxtX2ZpdCAlPiUgIiwiICBwdWxsX3dvcmtmbG93X3ByZXBwZWRfcmVjaXBlKCkgJT4lICIsIiAgdGlkeSgpIiwiIz4gIyBBIHRpYmJsZTogNSB4IDYiLCIjPiAgIG51bWJlciBvcGVyYXRpb24gdHlwZSAgICAgdHJhaW5lZCBza2lwICBpZCAgICAgICAgICAgICIsIiM+ICAgIDxpbnQ+IDxjaHI+ICAgICA8Y2hyPiAgICA8bGdsPiAgIDxsZ2w+IDxjaHI+ICAgICAgICAgIiwiIz4gMSAgICAgIDEgc3RlcCAgICAgIGxvZyAgICAgIFRSVUUgICAgRkFMU0UgbG9nX3U0cFp6ICAgICAiLCIjPiAyICAgICAgMiBzdGVwICAgICAgb3RoZXIgICAgVFJVRSAgICBGQUxTRSBvdGhlcl9YcWlJSyAgICIsIiM+IDMgICAgICAzIHN0ZXAgICAgICBkdW1teSAgICBUUlVFICAgIEZBTFNFIGR1bW15X2h0M2p2ICAgIiwiIz4gNCAgICAgIDQgc3RlcCAgICAgIGludGVyYWN0IFRSVUUgICAgRkFMU0UgaW50ZXJhY3RfSzJYeEQiLCIjPiA1ICAgICAgNSBzdGVwICAgICAgbnMgICAgICAgVFJVRSAgICBGQUxTRSBuc192cXRJbiIsIiIsIiMgVG8gdGlkeSB0aGUgbW9kZWwgZml0OiAiLCJsbV9maXQgJT4lICIsIiAgIyBUaGlzIHJldHVybnMgdGhlIHBhcnNuaXAgb2JqZWN0OiIsIiAgcHVsbF93b3JrZmxvd19maXQoKSAlPiUgIiwiICAjIE5vdyB0aWR5IHRoZSBsaW5lYXIgbW9kZWwgb2JqZWN0OiIsIiAgdGlkeSgpICU+JSAiLCIgIHNsaWNlKDE6NSkiLCIjPiAjIEEgdGliYmxlOiA1IHggNSIsIiM+ICAgdGVybSAgICAgICAgICAgICAgICAgICAgICAgZXN0aW1hdGUgc3RkLmVycm9yIHN0YXRpc3RpYyAgIHAudmFsdWUiLCIjPiAgIDxjaHI+ICAgICAgICAgICAgICAgICAgICAgICAgIDxkYmw+ICAgICA8ZGJsPiAgICAgPGRibD4gICAgIDxkYmw+IiwiIz4gMSAoSW50ZXJjZXB0KSAgICAgICAgICAgICAgICAtMC41MzEgICAgMC4yOTYgICAgICAgIC0xLjc5IDcuMzJlLSAgMiIsIiM+IDIgR3JfTGl2X0FyZWEgICAgICAgICAgICAgICAgIDAuNjQ4ICAgIDAuMDE2MSAgICAgICA0MC4zICAxLjQ2ZS0yNjQiLCIjPiAzIFllYXJfQnVpbHQgICAgICAgICAgICAgICAgICAwLjAwMTk0ICAwLjAwMDEzOSAgICAgMTMuOSAgMi42OWUtIDQyIiwiIz4gNCBOZWlnaGJvcmhvb2RfQ29sbGVnZV9DcmVlayAtMC4wODk4ICAgMC4wMzMyICAgICAgIC0yLjcxIDYuODNlLSAgMyIsIiM+IDUgTmVpZ2hib3Job29kX09sZF9Ub3duICAgICAgLTAuMDUxNiAgIDAuMDEyOSAgICAgICAtNC4wMSA2LjIwZS0gIDUiXX0= -->
+<pre class="r"><code># Get the recipe and run `tidy()` method: 
+lm_fit %&gt;% 
+  pull_workflow_prepped_recipe() %&gt;% 
+  tidy()
+#&gt; # A tibble: 5 x 6
+#&gt;   number operation type     trained skip  id            
+#&gt;    &lt;int&gt; &lt;chr&gt;     &lt;chr&gt;    &lt;lgl&gt;   &lt;lgl&gt; &lt;chr&gt;         
+#&gt; 1      1 step      log      TRUE    FALSE log_u4pZz     
+#&gt; 2      2 step      other    TRUE    FALSE other_XqiIK   
+#&gt; 3      3 step      dummy    TRUE    FALSE dummy_ht3jv   
+#&gt; 4      4 step      interact TRUE    FALSE interact_K2XxD
+#&gt; 5      5 step      ns       TRUE    FALSE ns_vqtIn
+
+# To tidy the model fit: 
+lm_fit %&gt;% 
+  # This returns the parsnip object:
+  pull_workflow_fit() %&gt;% 
+  # Now tidy the linear model object:
+  tidy() %&gt;% 
+  slice(1:5)
+#&gt; # A tibble: 5 x 5
+#&gt;   term                       estimate std.error statistic   p.value
+#&gt;   &lt;chr&gt;                         &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+#&gt; 1 (Intercept)                -0.531    0.296        -1.79 7.32e-  2
+#&gt; 2 Gr_Liv_Area                 0.648    0.0161       40.3  1.46e-264
+#&gt; 3 Year_Built                  0.00194  0.000139     13.9  2.69e- 42
+#&gt; 4 Neighborhood_College_Creek -0.0898   0.0332       -2.71 6.83e-  3
+#&gt; 5 Neighborhood_Old_Town      -0.0516   0.0129       -4.01 6.20e-  5</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
 </div>
 <div id="how-does-a-workflow-use-the-formula" class="section level3">
-<h3>8.3 How Does a Workflow Use the Formula?</h3>
+<h3>8.4 How Does a Workflow Use the Formula?</h3>
+<ol style="list-style-type: decimal">
+<li>The formula method has multiple purposes: one of these is to properly encode the original data into an analysis ready format.</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>This can involve:</li>
+</ol>
+<ul>
+<li><p>Executing in-line transformations (e.g., <code>log(x)</code>)</p></li>
+<li><p>Creating dummy variable columns</p></li>
+<li><p>Creating interactions or other column expansions</p></li>
+</ul>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>However, there are many statistical methods that require different types of encodings:</li>
+</ol>
+<ul>
+<li><p>Most packages for tree-based models use the formula interface but do not encode the categorical predictors as dummy variables.</p></li>
+<li><p>Packages can use special in-line functions that tell the model function how to treat the predictor in the analysis.</p></li>
+<li><p>Example: in survival analysis models, a formula term such as <code>strata(site)</code> would indicate that the column <code>site</code> is a stratification variable. This means that it should not be treated as a regular predictor and does not have a corresponding location parameter estimate in the model.</p></li>
+<li><p>A few R packages have extended the formula in ways that base R functions cannot parse or execute.</p></li>
+<li><p>Example: in multilevel models (e.g. mixed models or hierarchical Bayesian models), a model term such as <code>(week | subject)</code> indicates that the column <code>week</code> is a random effect that has different slope parameter estimates for each value of the <code>subject</code> column.</p></li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>A workflow is a general purpose interface. When <code>add_formula()</code> is used, how should the workflow pre-process the data? Since the preprocessing is model dependent, workflows attempts to emulate what the underlying model would do whenever possible. If it is not possible, the formula processing should not do anything to the columns used in the formula.</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Tree-based Models</li>
+</ol>
+<ol style="list-style-type: decimal">
+<li>When we fit a tree to the data, the <code>parsnip</code> package understands what the modeling function would do.</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li><p>Example: if a random forest model is fit using the <code>ranger</code> or <code>randomForest</code> packages, the workflow knows predictors columns that are factors should be left as-is.</p></li>
+<li><p>Counter Example: a boosted tree created with the <code>xgboost</code> package requires the user to create dummy variables from factor predictors (since <code>xgboost::xgb.train()</code> will not). This requirement is embedded into the model specification object and a workflow using <code>xgboost</code> will create the indicator columns for this engine. Also note that a different engine for boosted trees, C5.0, does not require dummy variables so none are made by the workflow.</p></li>
+<li><p>This determination is made for <em>each model</em> and <em>engine</em> combination.</p></li>
+</ol>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>Special Formulas and In-line Funtions</li>
+</ol>
+<ol style="list-style-type: decimal">
+<li>A number of multilevel models have standardized on a formula specification devised in the <code>lme4</code> package.</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Example: to fit a regression model that has random effects for subjects, we would use the following formula:</li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxpYnJhcnkobG1lNCkiLCJsbWVyKGRpc3RhbmNlIH4gU2V4ICsgKGFnZSB8IFN1YmplY3QpLCBkYXRhID0gT3J0aG9kb250KSJdfQ== -->
+<pre class="r"><code>library(lme4)
+lmer(distance ~ Sex + (age | Subject), data = Orthodont)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The effect of this is that each subject will have an estimated intercept and slope parameter for <code>age</code>.</p>
+<p>&lt;2&gt; The problem is that standard R methods can’t properly process this formula:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbIm1vZGVsLm1hdHJpeChkaXN0YW5jZSB+IFNleCArIChhZ2UgfCBTdWJqZWN0KSwgZGF0YSA9IE9ydGhvZG9udCkiLCIjPiBXYXJuaW5nIGluIE9wcy5vcmRlcmVkKGFnZSwgU3ViamVjdCk6ICd8JyBpcyBub3QgbWVhbmluZ2Z1bCBmb3Igb3JkZXJlZCBmYWN0b3JzIiwiIz4gICAgICAoSW50ZXJjZXB0KSBTZXhGZW1hbGUgYWdlIHwgU3ViamVjdFRSVUUiLCIjPiBhdHRyKCxcImFzc2lnblwiKSIsIiM+IFsxXSAwIDEgMiIsIiM+IGF0dHIoLFwiY29udHJhc3RzXCIpIiwiIz4gYXR0cigsXCJjb250cmFzdHNcIikkU2V4IiwiIz4gWzFdIFwiY29udHIudHJlYXRtZW50XCIiLCIjPiAiLCIjPiBhdHRyKCxcImNvbnRyYXN0c1wiKSRgYWdlIHwgU3ViamVjdGAiLCIjPiBbMV0gXCJjb250ci50cmVhdG1lbnRcIiJdfQ== -->
+<pre class="r"><code>model.matrix(distance ~ Sex + (age | Subject), data = Orthodont)
+#&gt; Warning in Ops.ordered(age, Subject): &#39;|&#39; is not meaningful for ordered factors
+#&gt;      (Intercept) SexFemale age | SubjectTRUE
+#&gt; attr(,&quot;assign&quot;)
+#&gt; [1] 0 1 2
+#&gt; attr(,&quot;contrasts&quot;)
+#&gt; attr(,&quot;contrasts&quot;)$Sex
+#&gt; [1] &quot;contr.treatment&quot;
+#&gt; 
+#&gt; attr(,&quot;contrasts&quot;)$`age | Subject`
+#&gt; [1] &quot;contr.treatment&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The result is a zero row data frame.</p>
+<p><em>Note:</em></p>
+<ul>
+<li><p>The issue is that the special formula has to be processed by the underlying package code, not the standard <code>model.matrix()</code> approach.</p></li>
+<li><p>Even if this formula could be used with <code>model.matrix()</code>, this would still present a problem since the formula also specifies the statistical attributes of the model.</p></li>
+</ul>
+<p>&lt;2&gt; The solution in workflows is an optional supplementary model formula that can be passed to <code>add_model()</code>.</p>
+<ul>
+<li>Example: using the <code>strata()</code> function in the <code>survival</code> package, the <code>add_formula()</code> specification provides the bare column names and then the actual formula given to the model is set within <code>add_model()</code>:</li>
+</ul>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxpYnJhcnkoc3Vydml2YWwpIiwiIiwicGFyYW1ldHJpY19tb2RlbCA8LSAiLCIgIHN1cnZfcmVnKCkgJT4lICIsIiAgc2V0X2VuZ2luZShcInN1cnZpdmFsXCIpIiwiIiwicGFyYW1ldHJpY193b3JrZmxvdyA8LSAiLCIgIHdvcmtmbG93KCkgJT4lICIsIiAgIyBUaGlzIGZvcm11bGEgcGFzc2VzIHRoZSBkYXRhIGFsb25nIGFzLWlzOiAiLCIgIGFkZF9mb3JtdWxhKGZ1dGltZSArIGZ1c3RhdCB+IGFnZSArIHJ4KSAlPiUgIiwiICBhZGRfbW9kZWwocGFyYW1ldHJpY19tb2RlbCwgIiwiICAgICAgICAgICAgIyBUaGlzIGZvcm11bGEgaXMgZ2l2ZW4gdG8gdGhlIG1vZGVsIiwiICAgICAgICAgICAgZm9ybXVsYSA9IFN1cnYoZnV0aW1lLCBmdXN0YXQpIH4gYWdlICsgc3RyYXRhKHJ4KSkiLCIiLCJyYW5kb21fZWZmZWN0cyA8LSBmaXQocGFyYW1ldHJpY193b3JrZmxvdywgZGF0YSA9IG92YXJpYW4pIiwicmFuZG9tX2VmZmVjdHMiLCIjPiDilZDilZAgV29ya2Zsb3cgW3RyYWluZWRdIOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkCIsIiM+IFByZXByb2Nlc3NvcjogRm9ybXVsYSIsIiM+IE1vZGVsOiBzdXJ2X3JlZygpIiwiIz4gIiwiIz4g4pSA4pSAIFByZXByb2Nlc3NvciDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAiLCIjPiBmdXRpbWUgKyBmdXN0YXQgfiBhZ2UgKyByeCIsIiM+ICIsIiM+IOKUgOKUgCBNb2RlbCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAiLCIjPiBDYWxsOiIsIiM+IHN1cnZpdmFsOjpzdXJ2cmVnKGZvcm11bGEgPSBTdXJ2KGZ1dGltZSwgZnVzdGF0KSB+IGFnZSArIHN0cmF0YShyeCksICIsIiM+ICAgICBkYXRhID0gZGF0YSwgbW9kZWwgPSBUUlVFKSIsIiM+ICIsIiM+IENvZWZmaWNpZW50czoiLCIjPiAoSW50ZXJjZXB0KSAgICAgICAgIGFnZSAiLCIjPiAgICAgMTIuODczNCAgICAgLTAuMTAzNCAiLCIjPiAiLCIjPiBTY2FsZToiLCIjPiAgIHJ4PTEgICByeD0yICIsIiM+IDAuNzY5NiAwLjQ3MDQgIiwiIz4gIiwiIz4gTG9nbGlrKG1vZGVsKT0gLTg5LjQgICBMb2dsaWsoaW50ZXJjZXB0IG9ubHkpPSAtOTcuMSIsIiM+ICBDaGlzcT0gMTUuMzYgb24gMSBkZWdyZWVzIG9mIGZyZWVkb20sIHA9IDllLTA1ICIsIiM+IG49IDI2Il19 -->
+<pre class="r"><code>library(survival)
+
+parametric_model &lt;- 
+  surv_reg() %&gt;% 
+  set_engine(&quot;survival&quot;)
+
+parametric_workflow &lt;- 
+  workflow() %&gt;% 
+  # This formula passes the data along as-is: 
+  add_formula(futime + fustat ~ age + rx) %&gt;% 
+  add_model(parametric_model, 
+            # This formula is given to the model
+            formula = Surv(futime, fustat) ~ age + strata(rx))
+
+random_effects &lt;- fit(parametric_workflow, data = ovarian)
+random_effects
+#&gt; ══ Workflow [trained] ═══════════════════════════════════════════════════════════════
+#&gt; Preprocessor: Formula
+#&gt; Model: surv_reg()
+#&gt; 
+#&gt; ── Preprocessor ─────────────────────────────────────────────────────────────────────
+#&gt; futime + fustat ~ age + rx
+#&gt; 
+#&gt; ── Model ────────────────────────────────────────────────────────────────────────────
+#&gt; Call:
+#&gt; survival::survreg(formula = Surv(futime, fustat) ~ age + strata(rx), 
+#&gt;     data = data, model = TRUE)
+#&gt; 
+#&gt; Coefficients:
+#&gt; (Intercept)         age 
+#&gt;     12.8734     -0.1034 
+#&gt; 
+#&gt; Scale:
+#&gt;   rx=1   rx=2 
+#&gt; 0.7696 0.4704 
+#&gt; 
+#&gt; Loglik(model)= -89.4   Loglik(intercept only)= -97.1
+#&gt;  Chisq= 15.36 on 1 degrees of freedom, p= 9e-05 
+#&gt; n= 26</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Notice how, in the call printed above, the model-specific formula was used.</p>
+<p>&lt;3&gt; As an alternative to using two formulas, we could use a straightforward recipe instead:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbInBhcmFtZXRyaWNfd29ya2Zsb3cgPC0gIiwiICB3b3JrZmxvdygpICU+JSAiLCIgIGFkZF9yZWNpcGUocmVjaXBlKGZ1dGltZSArIGZ1c3RhdCB+IGFnZSArIHJ4LCBkYXRhID0gb3ZhcmlhbikpICU+JSAiLCIgIGFkZF9tb2RlbChwYXJhbWV0cmljX21vZGVsLCAiLCIgICAgICAgICAgICBmb3JtdWxhID0gU3VydihmdXRpbWUsIGZ1c3RhdCkgfiBhZ2UgKyBzdHJhdGEocngpKSIsIiIsIiMgTm8gZXJyb3JzOiIsInJhbmRvbV9lZmZlY3RzIDwtIGZpdChwYXJhbWV0cmljX3dvcmtmbG93LCBkYXRhID0gb3ZhcmlhbikiXX0= -->
+<pre class="r"><code>parametric_workflow &lt;- 
+  workflow() %&gt;% 
+  add_recipe(recipe(futime + fustat ~ age + rx, data = ovarian)) %&gt;% 
+  add_model(parametric_model, 
+            formula = Surv(futime, fustat) ~ age + strata(rx))
+
+# No errors:
+random_effects &lt;- fit(parametric_workflow, data = ovarian)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
 </div>
 <div id="future-plans" class="section level3">
-<h3>8.4 Future Plans</h3>
+<h3>8.5 Future Plans</h3>
+<ol style="list-style-type: decimal">
+<li>A workflow can accept two types of preprocessors:</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li><p>A model formula</p></li>
+<li><p>A recipe</p></li>
+</ol>
+<ol style="list-style-type: decimal">
+<li>Recipes are very flexible, but they do not encompass everything that a modeling practitioner might want to do to the data prior to modeling.</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Example: a supervised feature filter might be of interest. Such a filter would screen predictors against the outcome using the training set and use the results to remove the least relevant predictors. In the future, a specification for this type of pre-model operation will be passed to a workflow to include it in the modeling process. This is a critical step that can have a profound effect on model performance. As discussed in the next chapter, a common pitfall in modeling is to exclude this step from the model evaluation process.</li>
+</ol>
+<ol start="2" style="list-style-type: decimal">
+<li>There are also operations that might occur <em>after</em> the model is fit.</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>Example: cutoff selection for two-class problems. Previously in this chapter, we discussed the idea of modifying the cutoff for a two-class problem. In the future, workflows will be able to attach a custom cutoff that is applied to probabilities after the model fit. Other approaches, such as probability calibration, could also be added as post-processors.</li>
+</ol>
 </div>
 <div id="chapter-summary" class="section level3">
-<h3>8.5 Chapter Summary</h3>
+<h3>8.6 Chapter Summary</h3>
+<ol style="list-style-type: decimal">
+<li>The modeling process encompasses more than just estimating the parameters of an algorithm that connects predictors to an outcome. This process also includes preprocessing steps, such as those outlined in Chapter 6, and operations taken after a model is fit. We introduced a concept called a model workflow that can capture the important components of the modeling process.</li>
+</ol>
 <!-- rnb-text-end -->
 </div>
 </div>
 </div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIkJhc2ljcyAtIENIOCINCmF1dGhvcjogSmluZ3lhbmcoSnVkeSkgWmhhbmcNCm91dHB1dDogaHRtbF9ub3RlYm9vaw0KZWRpdG9yX29wdGlvbnM6IA0KICBjaHVua19vdXRwdXRfdHlwZTogaW5saW5lDQotLS0NCg0KIyBCYXNpY3MNCiMjIENIQVBURVIgOCBBIE1vZGVsIFdvcmtmbG93DQoNCiMjIyA4LjEgV2hlcmUgRG9lcyBhIE1vZGVsIEJlZ2luIGFuZCBFbmQ/DQoNCiMjIyA4LjIgV29ya2Zsb3cgQmFzaWNzDQoNCiMjIyA4LjMgSG93IERvZXMgYSBXb3JrZmxvdyBVc2UgdGhlIEZvcm11bGE/DQoNCiMjIyA4LjQgRnV0dXJlIFBsYW5zDQoNCiMjIyA4LjUgQ2hhcHRlciBTdW1tYXJ5DQoNCg==</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIkJhc2ljcyAtIENIOCINCmF1dGhvcjogSmluZ3lhbmcoSnVkeSkgWmhhbmcNCm91dHB1dDogaHRtbF9ub3RlYm9vaw0KZWRpdG9yX29wdGlvbnM6IA0KICBjaHVua19vdXRwdXRfdHlwZTogaW5saW5lDQotLS0NCg0KIyBCYXNpY3MNCiMjIENIQVBURVIgOCBBIE1vZGVsIFdvcmtmbG93DQoxLiBUaGlzIGNoYXB0ZXIgd2lsbCBpbnRyb2R1Y2UgYSBuZXcgb2JqZWN0IGNhbGxlZCBhIF9tb2RlbCB3b3JrZmxvd18uIA0KYS4gVGhlIHB1cnBvc2Ugb2YgdGhpcyBvYmplY3QgaXMgdG8gZW5jYXBzdWxhdGUgdGhlIG1ham9yIHBpZWNlcyBvZiB0aGUgbW9kZWxpbmcgcHJvY2Vzcy4gDQoNCmIuIFRoZSB3b3JrZmxvdyBpcyBpbXBvcnRhbnQgaW4gdHdvIHdheXM6DQoNCigxKSBVc2luZyBhIHdvcmtmbG93IG9iamVjdCBlbmNvdXJhZ2VzIGdvb2QgbWV0aG9kbG9neSBzaW5jZSBpdCBpcyBhIHNpbmdsZSBwb2ludCBvZiBlbnRyeXRvIHRoZSBlc3RpbWF0aW9uIGNvbXBvbmVudHMgb2YgYSBkYXRhIGFuYWx5c2lzLiANCg0KKDIpIEl0IGVuYWJsZXMgdGhlIHVzZXIgdG8gYmV0dGVyIG9yYW5pemUgdGhlaXIgcHJvamVjdHMuIA0KDQojIyMgOC4xIFdoZXJlIERvZXMgYSBNb2RlbCBCZWdpbiBhbmQgRW5kPw0KDQoxLiBTbyBmYXIgdGhlIHRlcm0gInRoZSBtb2RlbCIgcmVmZXJzIHRvIGEgc3RydWN0dXJhbCBlcXVhaXRvbiB0aGF0IHJlbGF0ZXMgc29tZSBwcmVkaWN0b3JzIHRvIG9uZSBvciBtb3JlIG91dGNvbWVzLiANCg0KYS4gRXhhbXBsZTogTGluZWFyIE1vZGVsOiBsaW5lYXIgcmVncmVzc2lvbg0KDQpPdXRjb21lIERhdGE6IGRlbm90ZWQgYXMgJHlfe2l9LCBpID0gMSwgMiwgLi4uLCBuJC4gVGhlcmUgYXJlICRuJCBzYW1wbGVzIGluIHRoZSB0cmFpbmluZyBzZXQuIA0KDQpQcmVkaWN0b3JzOiBzdXBwb3NlIHRoZXJlIGFyZSAkcCQgcHJlZGljdG9ycyBkZW5vdGVkIGJ5ICR4X3tpMX0sIC4uLiwgeF97aXB9JC4NCg0KTGluZWFyIFJlZ3Jlc3Npb24gTW9kZWwgRXF1YXRpb246ICRcaGF0e3l9X3tpfSA9IFxoYXR7XGJldGF9X3swfSArIFxoYXR7XGJldGF9X3sxfXhfe2kxfSArIC4uLiArIFxoYXR7XGJldGF9X3twfXhfe2lwfSQuDQoNCipOb3RlKjogDQoNCisgV2hpbGUgdGhpcyBpcyBhIGxpbmVhciBtb2RlbCwgaXQgaXMgb25seSBsaW5lYXIgaW4gdGhlIHBhcmFtZXRlcnMgbm90IGluIHRoZSBwcmVkaWN0b3JzLiBUaGUgcHJlZGljdG9ycyBjb3VsZCBiZSBub25saW5lYXIgdGVybXMgc3VjaCBhcyAkXGxvZyh4X3tpfSkkLg0KDQoyLiBUaGUgY29udmVudGlvbmFsIHdheSBvZiB0aGlua2luZyBhYm91dCB0aGUgbW9kZWxpbmcgcHJvY2VzcyBpcyB0aGF0IGl0IG9ubHkgaW5jbHVkZXMgdGhlIG1vZGVsIGZpdC4NCg0KYS4gRm9yIHNvbWUgZGF0YSBzZXRzLCBmaXR0aW5nIHRoZSBtb2RlbCBpdHNlbGYgbWF5IGJlIHRoZSBlbnRpcmUgbW9kZWxpbmcgcHJvY2Vzcy4NCg0KYi4gRm9yIG90aGVyIGRhdGEgc2V0cywgdGhlcmUgYXJlIGEgdmFyaWV0eSBvZiBjaG9pY2VzIGFuZCBhZGRpdGlvbmFsIHN0ZXBzIHRoYXQgb2Z0ZW4gb2NjdXIgX2JlZm9yZV8gdGhlIG1vZGVsIGlzIGZpdDoNCg0KKDEpIFNlbGVjdCBQcmVkaWN0b3JzOiBjb21tb24gdG8gc3RhcnQgd2l0aCBtb3JlIHRoYW4gJHAkIHByZWRpY3RvcnMgYW5kIGV4Y2x1ZGUgc29tZSBwcmVkaWN0b3JzIHRocm91Z2ggRURBLCB1c2luZyBkb21haW4ga25vd2xlZGdlIG9yIHVzaW5nIGEgZmVhdHVyZSBzZWxlY3Rpb24gYWxnb3JpdGhtIHRvIG1ha2UgYSBkYXRhLWRyaXZlbiBjaG9pY2UgZm9yIHRoZSBtaW5pbXVtIHByZWRpY3RvciBzZXQgZm9yIHRoZSBtb2RlbC4gDQoNCigyKSBEZWFsdCB3aXRoIE1pc3NpbmcgVmFsdWVzOiBtaXNzaW5nIHZhbHVlIGNvdWxkIGJlIF9pbXB1dGVkXyB1c2luZyBvdGhlciB2YWx1ZXMgaW4gdGhlIGRhdGEuIA0KDQooYSkgRXhhbXBsZTogaWYgJHhfezF9JCB3ZXJlIGlzc2luZyBidXQgd2FzIGNvcnJlbGF0ZWQgd2l0aCBwcmVkaWN0b3JzICR4X3syfSwgeF97M30kLCBhbiBpbXB1dGF0aW9uIG1ldGhvZCBjb3VsZCBlc3RpbWF0ZSB0aGUgbWlzc2luZyAkeF97MX0kIG9ic2VydmF0aW9uIGZyb20gdGhlIHZhbHVlcyBvZiAkeF97Mn0sIHhfezN9JC4NCg0KKDMpIFRyYW5zZm9ybSBQcmVkaWN0b3JzOiANCg0KKGEpIFRyYW5zZm9ybSB0aGUgc2NhbGUgb2YgYSBwcmVkaWN0b3I6IHVzaW5nIGEgcHJpb3JpIGluZm9ybWF0aW9uIG9uIHdoYXQgdGhlIG5ldyBzY2FsZSBzaG91bGQgYmUgb3IgZXN0aW1hdGUgdGhlIHByb3BlciBzY2FsZSB1c2luZyBhIHN0YXRpc3RpY2FsIHRyYW5zZm9ybWF0aW9uIHRlY2huaXF1ZSwgdGhlIGV4aXN0aW5nIGRhdGEsIGFuZCBzb21lIG9wdGltaXphdGlvbiBjcml0ZXJpb24uDQoNCihiKSBUYWtlIGdyb3VwcyBvZiBwcmVkaWN0b3JzIGFuZCB0cmFuc2Zvcm0gdGhlbSBpbnRvIG5ldyBmZWF0dXJlcyB0aGF0IGFyZSB1c2VkIGFzIHRoZSBwcmVkaWN0b3JzLiBUaGlzIG9mdGVuIGhhcHBlbnMgaW4gUENBLiANCg0KYy4gVGhlcmUgYXJlIGFsc28gY2hvaWNlcyBhbmQgYWRkaXRpb25hbCBzdGVwcyB0aGF0IG9mdGVuIG9jY3VyIF9hZnRlcl8gdGhlIG1vZGVsIGlzIGZpdDoNCg0KKDEpIEhhcmQgUHJlZGljdGlvbjogdXNlIGEgNTAlIHByb2JhYmlsaXR5IGN1dG9mZiB0byBjcmVhdGUgYSBkaXNjcmVhdGUgY2xhc3NzIHByZWRpY3Rpb24ga25vd24gYXMgYSAiaGFyZCBwcmVkaWN0aW9uIiBmb3IgdGhlIGJpbmFyeSBvdXRjb21lIChlLmcuIGV2ZW50IHYucy4gbm9uLWV2ZW50KSBpbiBhIGNsYXNzaWZpY2F0aW9uIG1vZGVsLiANCg0KDQozLiBUaGUgbW9kZWwgd29ya2Zsb3cgaXMgdGhlIGJvcmFkZXIgbW9kZWxpbmcgcHJvY2VzcyB0aGF0IGluY2x1ZGUgYW55IHByZXByb2Nlc3Npbmcgc3RlcHMsIHRoZSBtb2RlbCBmaXQgaXRzZWxmLCBhbmQgcG90ZW50aWFsIHBvc3QtcHJvY2Vzc2luZyBhY3Rpdml0aWVzLiANCg0KYS4gSW4gb3RoZXIgc29mdHdhcmUsIHN1Y2ggYXMgUHl0aG9uIG9yIFNwYXJrLCBzaW1pbGFyIGNvbGxlY3Rpb25zIG9mIHN0ZXBzIGFyZSBjYWxsZWQgX3BpcGVsaW5lc18uIA0KDQpiLiBJbiB0aWR5bW9kZWxzLCB0aGUgdGVybSDigJxwaXBlbGluZeKAnSBhbHJlYWR5IGNvbm5vdGVzIGEgc2VxdWVuY2Ugb2Ygb3BlcmF0aW9ucyBjaGFpbmVkIHRvZ2V0aGVyIHdpdGggYSBwaXBlIG9wZXJhdG9yIChzdWNoIGFzIGAlPiVgKS4gDQoNCigxKSBXZSB3aWxsIGNhbGwgdGhlIHNlcXVlbmNlIG9mIGNvbXB1dGF0aW9uYWwgb3BlcmF0aW9ucyByZWxhdGVkIHRvIG1vZGVsaW5nIF93b3JrZmxvd3NfLg0KDQoNCjQuIFRoZSBfd29ya2Zsb3dfIG11c3QgaW5jbHVkZSBhbGwgc2lnbmlmaWNhbnQgZXN0aW1hdGlvbiBzdGVwcy4gDQoNCg0KNS4gRXhhbXBsZTogUENBIFNpZ25hbCBFeHRyYWN0aW9uOiBhIHdheSB0byByZXBsYWNlIGNvcnJlbGF0ZWQgcHJlZGljdG9ycyB3aXRoIG5ldyBhcnRpZmljaWFsIGZlYXR1cmVzIHRoYXQgYXJlIHVuY29ycmVsYXRlZCBhbmQgY2FwdHVyZSBtb3N0IG9mIHRoZSBpbmZvcm1hdGlvbiBpbiB0aGUgb3JpZ2luYWwgc2V0LiBUaGUgbmV3IGZlYXR1cmVzIHdvdWxkIGJlIHVzZWQgYXMgdGhlIHByZWRpY3RvcnMgYW5kIGxlYXN0IHNxdWFyZXMgcmVncmVzc2lvbiBjb3VsZCBiZSB1c2VkIHRvIGVzdGltYXRlIHRoZSBtb2RlbCBwYXJhbWV0ZXJzLg0KDQpNb2RlbCBXb3JrZmxvdzoNCg0KIVtdKEZpZzguMVBDQVNpZ25hbEV4dHJhY3Rpb25Xb3JrRmxvdy5QTkcpDQoNCipOb3RlOiogDQoNCisgVGhlIFBDQSBwcmVwcm9jZXNzaW5nIGlzIHBhcnQgb2YgdGhlIG1vZGVsaW5nIHByb2Nlc3MuIA0KDQojIyMgOC4yIFdvcmtmbG93IEJhc2ljcw0KDQoxLiBUaGUgYHdvcmtmbG93c2AgcGFja2FnZSBhbGxvd3MgdGhlIHVzZXIgdG8gYmluZCBtb2RlbGluZyBhbmQgcHJlcHJvY2Vzc2luZyBvYmplY3RzIHRvZ2V0aGVyLiANCg0KMi4gRXhhbXBsZTogQW1lcyBEYXRhDQoNCmBgYHtyIGV2YWwgPSBGQUxTRX0NCg0KbGlicmFyeSh0aWR5bW9kZWxzKSAgIyBJbmNsdWRlcyB0aGUgd29ya2Zsb3dzIHBhY2thZ2UNCg0KbG1fbW9kZWwgPC0gDQogIGxpbmVhcl9yZWcoKSAlPiUgDQogIHNldF9lbmdpbmUoImxtIikNCg0KYGBgDQoNCmEuIEEgd29ya2Zsb3cgYWx3YXlzIHJlcXVpcmVzIGEgYHBhcnNuaXBgIG1vZGVsIG9iamVjdDoNCmBgYHtyIGV2YWwgPSBGQUxTRX0NCg0KbG1fd2Zsb3cgPC0gDQogIHdvcmtmbG93KCkgJT4lIA0KICBhZGRfbW9kZWwobG1fbW9kZWwpDQoNCmxtX3dmbG93DQojPiDilZDilZAgV29ya2Zsb3cg4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQDQojPiBQcmVwcm9jZXNzb3I6IE5vbmUNCiM+IE1vZGVsOiBsaW5lYXJfcmVnKCkNCiM+IA0KIz4g4pSA4pSAIE1vZGVsIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgA0KIz4gTGluZWFyIFJlZ3Jlc3Npb24gTW9kZWwgU3BlY2lmaWNhdGlvbiAocmVncmVzc2lvbikNCiM+IA0KIz4gQ29tcHV0YXRpb25hbCBlbmdpbmU6IGxtDQoNCmBgYA0KDQoNCmIuIE5vdGljZSB0aGF0IHdlIGhhdmUgbm90IHlldCBzcGVjaWZpZWQgaG93IHRoaXMgd29ya2Zsb3cgc2hvdWxkIHByZXByb2Nlc3MgdGhlIGRhdGE6IGBQcmVwcm9jZXNzb3I6IE5vbmVgLg0KDQooMSkgSWYgb3VyIG1vZGVsIHdlcmUgdmVyeSBzaW1wbGUsIGEgc3RhbmRhcmQgUiBmb3JtdWxhIGNhbiBiZSB1c2VkIGFzIGEgcHJlcHJvY2Vzc29yOg0KDQpgYGB7ciBldmFsID0gRkFMU0V9DQoNCmxtX3dmbG93IDwtIA0KICBsbV93ZmxvdyAlPiUgDQogIGFkZF9mb3JtdWxhKFNhbGVfUHJpY2UgfiBMb25naXR1ZGUgKyBMYXRpdHVkZSkNCg0KbG1fd2Zsb3cNCiM+IOKVkOKVkCBXb3JrZmxvdyDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZANCiM+IFByZXByb2Nlc3NvcjogRm9ybXVsYQ0KIz4gTW9kZWw6IGxpbmVhcl9yZWcoKQ0KIz4gDQojPiDilIDilIAgUHJlcHJvY2Vzc29yIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgA0KIz4gU2FsZV9QcmljZSB+IExvbmdpdHVkZSArIExhdGl0dWRlDQojPiANCiM+IOKUgOKUgCBNb2RlbCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIANCiM+IExpbmVhciBSZWdyZXNzaW9uIE1vZGVsIFNwZWNpZmljYXRpb24gKHJlZ3Jlc3Npb24pDQojPiANCiM+IENvbXB1dGF0aW9uYWwgZW5naW5lOiBsbQ0KDQpgYGANCg0KDQpjLiBXb3JrZmxvd3MgaGF2ZSBhIGBmaXQoKWAgbWV0aG9kIHRoYXQgY2FuIGJlIHVzZWQgdG8gY3JlYXRlIHRoZSBtb2RlbC4gVXNpbmcgdGhlIG9iamVjdHMgY3JlYXRlIGluIFNlY3Rpb24gNy41Og0KDQpgYGB7ciBldmFsID0gRkFMU0V9DQoNCmxtX2ZpdCA8LSBmaXQobG1fd2Zsb3csIGFtZXNfdHJhaW4pDQpsbV9maXQNCiM+IOKVkOKVkCBXb3JrZmxvdyBbdHJhaW5lZF0g4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQDQojPiBQcmVwcm9jZXNzb3I6IEZvcm11bGENCiM+IE1vZGVsOiBsaW5lYXJfcmVnKCkNCiM+IA0KIz4g4pSA4pSAIFByZXByb2Nlc3NvciDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIANCiM+IFNhbGVfUHJpY2UgfiBMb25naXR1ZGUgKyBMYXRpdHVkZQ0KIz4gDQojPiDilIDilIAgTW9kZWwg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSADQojPiANCiM+IENhbGw6DQojPiBzdGF0czo6bG0oZm9ybXVsYSA9IC4ueSB+IC4sIGRhdGEgPSBkYXRhKQ0KIz4gDQojPiBDb2VmZmljaWVudHM6DQojPiAoSW50ZXJjZXB0KSAgICBMb25naXR1ZGUgICAgIExhdGl0dWRlICANCiM+ICAgICAtMzE2LjM3ICAgICAgICAtMi4wOCAgICAgICAgIDMuMDENCg0KYGBgDQoNCmQuIFdlIGNhbiBhbHNvIHVzZSBgcHJlZGljdCgpYCBvbiB0aGUgZml0dGVkIHdvcmtmbG93Og0KDQpgYGB7ciBldmFsID0gRkFMU0V9DQpwcmVkaWN0KGxtX2ZpdCwgYW1lc190ZXN0ICU+JSBzbGljZSgxOjMpKQ0KIz4gIyBBIHRpYmJsZTogMyB4IDENCiM+ICAgLnByZWQNCiM+ICAgPGRibD4NCiM+IDEgIDUuMjINCiM+IDIgIDUuMjkNCiM+IDMgIDUuMjgNCmBgYA0KDQplLiBCb3RoIHRoZSBtb2RlbCBhbmQgcHJlcHJvY2Vzc29yIGNhbiBiZSByZW1vdmVkIG9yIHVwZGF0ZWQ6DQoNCk5vdGUgdGhhdCwgaW4gdGhpcyBuZXcgb2JqZWN0LCB0aGUgb3V0cHV0IHNob3dzIHRoYXQgdGhlIHByZXZpb3VzIGZpdHRlZCBtb2RlbCB3YXMgcmVtb3ZlZCBzaW5jZSB0aGUgbmV3IGZvcm11bGEgaXMgaW5jb25zaXN0ZW50IHdpdGggdGhlIHByZXZpb3VzIG1vZGVsIGZpdC4NCg0KYGBge3IgZXZhbCA9IEZBTFNFfQ0KbG1fZml0ICU+JSB1cGRhdGVfZm9ybXVsYShTYWxlX1ByaWNlIH4gTG9uZ2l0dWRlKQ0KIz4g4pWQ4pWQIFdvcmtmbG93IOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkA0KIz4gUHJlcHJvY2Vzc29yOiBGb3JtdWxhDQojPiBNb2RlbDogbGluZWFyX3JlZygpDQojPiANCiM+IOKUgOKUgCBQcmVwcm9jZXNzb3Ig4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSADQojPiBTYWxlX1ByaWNlIH4gTG9uZ2l0dWRlDQojPiANCiM+IOKUgOKUgCBNb2RlbCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIANCiM+IExpbmVhciBSZWdyZXNzaW9uIE1vZGVsIFNwZWNpZmljYXRpb24gKHJlZ3Jlc3Npb24pDQojPiANCiM+IENvbXB1dGF0aW9uYWwgZW5naW5lOiBsbQ0KYGBgDQoNCiMjIyA4LjMgV29ya2Zsb3cgYW5kIFJlY2lwZXMNCg0KMS4gSW5zdGVhZCBvZiB1c2luZyBtb2RlbCBmb3JtdWxhcywgYHJlY2lwZWAgb2JqZWN0cyBjYW4gYWxzbyBiZSB1c2VkIHRvIHByZXByb2Nlc3MgZGF0YSBmb3IgbW9kZWxpbmcuIA0KDQphLiBFeGFtcGxlOiBBbWVzIERhdGENCg0KKDEpIFRoZSByZWNpcGUgb2JqZWN0IGBhbWVzX3JlY2AgZW5jYXBzdWxhdGVkIHNldmVyYWwgc3BlY2lmaWVkIHByZXByb2Nlc3NpbmcgYW5kIGZlYXR1cmUgZW5naW5lZXJpbmcgc3RlcHMuIFdlIHdpbGwgYXR0YWNoIGl0IHRvIHRoZSB3b3JrZmxvdzogDQoNCmBgYHtyIGV2YWwgPSBGQUxTRX0NCg0KbG1fd2Zsb3cgJT4lIA0KICBhZGRfcmVjaXBlKGFtZXNfcmVjKQ0KIz4gRXJyb3I6IEEgcmVjaXBlIGNhbm5vdCBiZSBhZGRlZCB3aGVuIGEgZm9ybXVsYSBhbHJlYWR5IGV4aXN0cy4NCg0KYGBgDQoNClRoYXQgZGlkIG5vdCB3b3JrISBXZSBjYW4gb25seSBoYXZlIG9uZSBwcmVwcm9jZXNzaW5nIG1ldGhvZCBhdCBhIHRpbWUsIHNvIHdlIG5lZWQgdG8gcmVtb3ZlIHRoZSBmb3JtdWxhIGJlZm9yZSBhZGRpbmcgdGhlIHJlY2lwZS4NCg0KYGBge3IgZXZhbCA9IEZBTFNFfQ0KDQpsbV93ZmxvdyA8LSANCiAgbG1fd2Zsb3cgJT4lIA0KICByZW1vdmVfZm9ybXVsYSgpICU+JSANCiAgYWRkX3JlY2lwZShhbWVzX3JlYykNCmxtX3dmbG93DQojPiDilZDilZAgV29ya2Zsb3cg4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQDQojPiBQcmVwcm9jZXNzb3I6IFJlY2lwZQ0KIz4gTW9kZWw6IGxpbmVhcl9yZWcoKQ0KIz4gDQojPiDilIDilIAgUHJlcHJvY2Vzc29yIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgA0KIz4gNSBSZWNpcGUgU3RlcHMNCiM+IA0KIz4g4pePIHN0ZXBfbG9nKCkNCiM+IOKXjyBzdGVwX290aGVyKCkNCiM+IOKXjyBzdGVwX2R1bW15KCkNCiM+IOKXjyBzdGVwX2ludGVyYWN0KCkNCiM+IOKXjyBzdGVwX25zKCkNCiM+IA0KIz4g4pSA4pSAIE1vZGVsIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgA0KIz4gTGluZWFyIFJlZ3Jlc3Npb24gTW9kZWwgU3BlY2lmaWNhdGlvbiAocmVncmVzc2lvbikNCiM+IA0KIz4gQ29tcHV0YXRpb25hbCBlbmdpbmU6IGxtDQoNCmBgYA0KDQoNCigyKSBXZSBkZXNjcmliZWQgdGhlIGBwcmVwKClgLCBgYmFrZSgpYCwgYW5kIGBqdWljZSgpYCBmdW5jdGlvbnMgZm9yIHVzaW5nIHRoZSByZWNpcGUgd2l0aCBhIG1vZGVsaW5nIGZ1bmN0aW9uLiBUaGlzIGNhbiBiZSBvbmVyb3VzLCBzbyB0aGUgYGZpdCgpYCBtZXRob2QgZm9yIHdvcmtmbG93IG9iamVjdHMgYXV0b21hdGVzIHRoaXMgcHJvY2VzczoNCg0KYGBge3IgZXZhbCA9IEZBTFNFfQ0KDQojIERvZXMgYHByZXAoKWAsIGBqdWljZSgpYCwgYW5kIGBmaXQoKWAgaW4gb25lIHN0ZXA6DQpsbV9maXQgPC0gZml0KGxtX3dmbG93LCBhbWVzX3RyYWluKQ0KDQojIERvZXMgYGJha2UoKWAgYW5kIGBwcmVkaWN0KClgIGF1dG9tYXRpY2FsbHk6DQpwcmVkaWN0KGxtX2ZpdCwgYW1lc190ZXN0ICU+JSBzbGljZSgxOjMpKQ0KIz4gIyBBIHRpYmJsZTogMyB4IDENCiM+ICAgLnByZWQNCiM+ICAgPGRibD4NCiM+IDEgIDUuMzENCiM+IDIgIDUuMzANCiM+IDMgIDUuMTcNCmBgYA0KDQooMykgSWYgd2UgbmVlZCB0aGUgYmFyZSBtb2RlbCBvYmplY3Qgb3IgcmVjaXBlLCB0aGVyZSBhcmUgcHVsbF8qIGZ1bmN0aW9ucyB0aGF0IGNhbiByZXRyaWV2ZSB0aGVtOg0KDQpgYGB7ciBldmFsID0gRkFMU0V9DQoNCiMgR2V0IHRoZSByZWNpcGUgYW5kIHJ1biBgdGlkeSgpYCBtZXRob2Q6IA0KbG1fZml0ICU+JSANCiAgcHVsbF93b3JrZmxvd19wcmVwcGVkX3JlY2lwZSgpICU+JSANCiAgdGlkeSgpDQojPiAjIEEgdGliYmxlOiA1IHggNg0KIz4gICBudW1iZXIgb3BlcmF0aW9uIHR5cGUgICAgIHRyYWluZWQgc2tpcCAgaWQgICAgICAgICAgICANCiM+ICAgIDxpbnQ+IDxjaHI+ICAgICA8Y2hyPiAgICA8bGdsPiAgIDxsZ2w+IDxjaHI+ICAgICAgICAgDQojPiAxICAgICAgMSBzdGVwICAgICAgbG9nICAgICAgVFJVRSAgICBGQUxTRSBsb2dfdTRwWnogICAgIA0KIz4gMiAgICAgIDIgc3RlcCAgICAgIG90aGVyICAgIFRSVUUgICAgRkFMU0Ugb3RoZXJfWHFpSUsgICANCiM+IDMgICAgICAzIHN0ZXAgICAgICBkdW1teSAgICBUUlVFICAgIEZBTFNFIGR1bW15X2h0M2p2ICAgDQojPiA0ICAgICAgNCBzdGVwICAgICAgaW50ZXJhY3QgVFJVRSAgICBGQUxTRSBpbnRlcmFjdF9LMlh4RA0KIz4gNSAgICAgIDUgc3RlcCAgICAgIG5zICAgICAgIFRSVUUgICAgRkFMU0UgbnNfdnF0SW4NCg0KIyBUbyB0aWR5IHRoZSBtb2RlbCBmaXQ6IA0KbG1fZml0ICU+JSANCiAgIyBUaGlzIHJldHVybnMgdGhlIHBhcnNuaXAgb2JqZWN0Og0KICBwdWxsX3dvcmtmbG93X2ZpdCgpICU+JSANCiAgIyBOb3cgdGlkeSB0aGUgbGluZWFyIG1vZGVsIG9iamVjdDoNCiAgdGlkeSgpICU+JSANCiAgc2xpY2UoMTo1KQ0KIz4gIyBBIHRpYmJsZTogNSB4IDUNCiM+ICAgdGVybSAgICAgICAgICAgICAgICAgICAgICAgZXN0aW1hdGUgc3RkLmVycm9yIHN0YXRpc3RpYyAgIHAudmFsdWUNCiM+ICAgPGNocj4gICAgICAgICAgICAgICAgICAgICAgICAgPGRibD4gICAgIDxkYmw+ICAgICA8ZGJsPiAgICAgPGRibD4NCiM+IDEgKEludGVyY2VwdCkgICAgICAgICAgICAgICAgLTAuNTMxICAgIDAuMjk2ICAgICAgICAtMS43OSA3LjMyZS0gIDINCiM+IDIgR3JfTGl2X0FyZWEgICAgICAgICAgICAgICAgIDAuNjQ4ICAgIDAuMDE2MSAgICAgICA0MC4zICAxLjQ2ZS0yNjQNCiM+IDMgWWVhcl9CdWlsdCAgICAgICAgICAgICAgICAgIDAuMDAxOTQgIDAuMDAwMTM5ICAgICAxMy45ICAyLjY5ZS0gNDINCiM+IDQgTmVpZ2hib3Job29kX0NvbGxlZ2VfQ3JlZWsgLTAuMDg5OCAgIDAuMDMzMiAgICAgICAtMi43MSA2LjgzZS0gIDMNCiM+IDUgTmVpZ2hib3Job29kX09sZF9Ub3duICAgICAgLTAuMDUxNiAgIDAuMDEyOSAgICAgICAtNC4wMSA2LjIwZS0gIDUNCg0KYGBgDQoNCg0KIyMjIDguNCBIb3cgRG9lcyBhIFdvcmtmbG93IFVzZSB0aGUgRm9ybXVsYT8NCg0KMS4gVGhlIGZvcm11bGEgbWV0aG9kIGhhcyBtdWx0aXBsZSBwdXJwb3Nlczogb25lIG9mIHRoZXNlIGlzIHRvIHByb3Blcmx5IGVuY29kZSB0aGUgb3JpZ2luYWwgZGF0YSBpbnRvIGFuIGFuYWx5c2lzIHJlYWR5IGZvcm1hdC4gDQoNCmEuIFRoaXMgY2FuIGludm9sdmU6DQoNCiogRXhlY3V0aW5nIGluLWxpbmUgdHJhbnNmb3JtYXRpb25zIChlLmcuLCBgbG9nKHgpYCkNCg0KKiBDcmVhdGluZyBkdW1teSB2YXJpYWJsZSBjb2x1bW5zDQoNCiogQ3JlYXRpbmcgaW50ZXJhY3Rpb25zIG9yIG90aGVyIGNvbHVtbiBleHBhbnNpb25zDQoNCmIuIEhvd2V2ZXIsIHRoZXJlIGFyZSBtYW55IHN0YXRpc3RpY2FsIG1ldGhvZHMgdGhhdCByZXF1aXJlIGRpZmZlcmVudCB0eXBlcyBvZiBlbmNvZGluZ3M6DQoNCiogTW9zdCBwYWNrYWdlcyBmb3IgdHJlZS1iYXNlZCBtb2RlbHMgdXNlIHRoZSBmb3JtdWxhIGludGVyZmFjZSBidXQgZG8gbm90IGVuY29kZSB0aGUgY2F0ZWdvcmljYWwgcHJlZGljdG9ycyBhcyBkdW1teSB2YXJpYWJsZXMuDQoNCiogUGFja2FnZXMgY2FuIHVzZSBzcGVjaWFsIGluLWxpbmUgZnVuY3Rpb25zIHRoYXQgdGVsbCB0aGUgbW9kZWwgZnVuY3Rpb24gaG93IHRvIHRyZWF0IHRoZSBwcmVkaWN0b3IgaW4gdGhlIGFuYWx5c2lzLiANCg0KKyBFeGFtcGxlOiBpbiBzdXJ2aXZhbCBhbmFseXNpcyBtb2RlbHMsIGEgZm9ybXVsYSB0ZXJtIHN1Y2ggYXMgYHN0cmF0YShzaXRlKWAgd291bGQgaW5kaWNhdGUgdGhhdCB0aGUgY29sdW1uIGBzaXRlYCBpcyBhIHN0cmF0aWZpY2F0aW9uIHZhcmlhYmxlLiBUaGlzIG1lYW5zIHRoYXQgaXQgc2hvdWxkIG5vdCBiZSB0cmVhdGVkIGFzIGEgcmVndWxhciBwcmVkaWN0b3IgYW5kIGRvZXMgbm90IGhhdmUgYSBjb3JyZXNwb25kaW5nIGxvY2F0aW9uIHBhcmFtZXRlciBlc3RpbWF0ZSBpbiB0aGUgbW9kZWwuDQoNCiogQSBmZXcgUiBwYWNrYWdlcyBoYXZlIGV4dGVuZGVkIHRoZSBmb3JtdWxhIGluIHdheXMgdGhhdCBiYXNlIFIgZnVuY3Rpb25zIGNhbm5vdCBwYXJzZSBvciBleGVjdXRlLiANCg0KKyBFeGFtcGxlOiBpbiBtdWx0aWxldmVsIG1vZGVscyAoZS5nLiBtaXhlZCBtb2RlbHMgb3IgaGllcmFyY2hpY2FsIEJheWVzaWFuIG1vZGVscyksIGEgbW9kZWwgdGVybSBzdWNoIGFzIGAod2VlayB8IHN1YmplY3QpYCBpbmRpY2F0ZXMgdGhhdCB0aGUgY29sdW1uIGB3ZWVrYCBpcyBhIHJhbmRvbSBlZmZlY3QgdGhhdCBoYXMgZGlmZmVyZW50IHNsb3BlIHBhcmFtZXRlciBlc3RpbWF0ZXMgZm9yIGVhY2ggdmFsdWUgb2YgdGhlIGBzdWJqZWN0YCBjb2x1bW4uDQoNCjIuIEEgd29ya2Zsb3cgaXMgYSBnZW5lcmFsIHB1cnBvc2UgaW50ZXJmYWNlLiBXaGVuIGBhZGRfZm9ybXVsYSgpYCBpcyB1c2VkLCBob3cgc2hvdWxkIHRoZSB3b3JrZmxvdyBwcmUtcHJvY2VzcyB0aGUgZGF0YT8gU2luY2UgdGhlIHByZXByb2Nlc3NpbmcgaXMgbW9kZWwgZGVwZW5kZW50LCB3b3JrZmxvd3MgYXR0ZW1wdHMgdG8gZW11bGF0ZSB3aGF0IHRoZSB1bmRlcmx5aW5nIG1vZGVsIHdvdWxkIGRvIHdoZW5ldmVyIHBvc3NpYmxlLiBJZiBpdCBpcyBub3QgcG9zc2libGUsIHRoZSBmb3JtdWxhIHByb2Nlc3Npbmcgc2hvdWxkIG5vdCBkbyBhbnl0aGluZyB0byB0aGUgY29sdW1ucyB1c2VkIGluIHRoZSBmb3JtdWxhLiANCg0KYS4gVHJlZS1iYXNlZCBNb2RlbHMNCg0KKDEpIFdoZW4gd2UgZml0IGEgdHJlZSB0byB0aGUgZGF0YSwgdGhlIGBwYXJzbmlwYCBwYWNrYWdlIHVuZGVyc3RhbmRzIHdoYXQgdGhlIG1vZGVsaW5nIGZ1bmN0aW9uIHdvdWxkIGRvLg0KDQooYSkgRXhhbXBsZTogaWYgYSByYW5kb20gZm9yZXN0IG1vZGVsIGlzIGZpdCB1c2luZyB0aGUgYHJhbmdlcmAgb3IgYHJhbmRvbUZvcmVzdGAgcGFja2FnZXMsIHRoZSB3b3JrZmxvdyBrbm93cyBwcmVkaWN0b3JzIGNvbHVtbnMgdGhhdCBhcmUgZmFjdG9ycyBzaG91bGQgYmUgbGVmdCBhcy1pcy4NCg0KKGIpIENvdW50ZXIgRXhhbXBsZTogYSBib29zdGVkIHRyZWUgY3JlYXRlZCB3aXRoIHRoZSBgeGdib29zdGAgcGFja2FnZSByZXF1aXJlcyB0aGUgdXNlciB0byBjcmVhdGUgZHVtbXkgdmFyaWFibGVzIGZyb20gZmFjdG9yIHByZWRpY3RvcnMgKHNpbmNlIGB4Z2Jvb3N0Ojp4Z2IudHJhaW4oKWAgd2lsbCBub3QpLiBUaGlzIHJlcXVpcmVtZW50IGlzIGVtYmVkZGVkIGludG8gdGhlIG1vZGVsIHNwZWNpZmljYXRpb24gb2JqZWN0IGFuZCBhIHdvcmtmbG93IHVzaW5nIGB4Z2Jvb3N0YCB3aWxsIGNyZWF0ZSB0aGUgaW5kaWNhdG9yIGNvbHVtbnMgZm9yIHRoaXMgZW5naW5lLiBBbHNvIG5vdGUgdGhhdCBhIGRpZmZlcmVudCBlbmdpbmUgZm9yIGJvb3N0ZWQgdHJlZXMsIEM1LjAsIGRvZXMgbm90IHJlcXVpcmUgZHVtbXkgdmFyaWFibGVzIHNvIG5vbmUgYXJlIG1hZGUgYnkgdGhlIHdvcmtmbG93Lg0KDQooYykgVGhpcyBkZXRlcm1pbmF0aW9uIGlzIG1hZGUgZm9yIF9lYWNoIG1vZGVsXyBhbmQgX2VuZ2luZV8gY29tYmluYXRpb24uDQoNCg0KYi4gU3BlY2lhbCBGb3JtdWxhcyBhbmQgSW4tbGluZSBGdW50aW9ucw0KDQooMSkgQSBudW1iZXIgb2YgbXVsdGlsZXZlbCBtb2RlbHMgaGF2ZSBzdGFuZGFyZGl6ZWQgb24gYSBmb3JtdWxhIHNwZWNpZmljYXRpb24gZGV2aXNlZCBpbiB0aGUgYGxtZTRgIHBhY2thZ2UuIA0KDQooYSkgRXhhbXBsZTogdG8gZml0IGEgcmVncmVzc2lvbiBtb2RlbCB0aGF0IGhhcyByYW5kb20gZWZmZWN0cyBmb3Igc3ViamVjdHMsIHdlIHdvdWxkIHVzZSB0aGUgZm9sbG93aW5nIGZvcm11bGE6DQoNCmBgYHtyIGV2YWw9IEZBTFNFfQ0KbGlicmFyeShsbWU0KQ0KbG1lcihkaXN0YW5jZSB+IFNleCArIChhZ2UgfCBTdWJqZWN0KSwgZGF0YSA9IE9ydGhvZG9udCkNCmBgYA0KDQoNClRoZSBlZmZlY3Qgb2YgdGhpcyBpcyB0aGF0IGVhY2ggc3ViamVjdCB3aWxsIGhhdmUgYW4gZXN0aW1hdGVkIGludGVyY2VwdCBhbmQgc2xvcGUgcGFyYW1ldGVyIGZvciBgYWdlYC4NCg0KPDI+IFRoZSBwcm9ibGVtIGlzIHRoYXQgc3RhbmRhcmQgUiBtZXRob2RzIGNhbuKAmXQgcHJvcGVybHkgcHJvY2VzcyB0aGlzIGZvcm11bGE6DQoNCmBgYHtyIGV2YWwgPSBGQUxTRX0NCm1vZGVsLm1hdHJpeChkaXN0YW5jZSB+IFNleCArIChhZ2UgfCBTdWJqZWN0KSwgZGF0YSA9IE9ydGhvZG9udCkNCiM+IFdhcm5pbmcgaW4gT3BzLm9yZGVyZWQoYWdlLCBTdWJqZWN0KTogJ3wnIGlzIG5vdCBtZWFuaW5nZnVsIGZvciBvcmRlcmVkIGZhY3RvcnMNCiM+ICAgICAgKEludGVyY2VwdCkgU2V4RmVtYWxlIGFnZSB8IFN1YmplY3RUUlVFDQojPiBhdHRyKCwiYXNzaWduIikNCiM+IFsxXSAwIDEgMg0KIz4gYXR0cigsImNvbnRyYXN0cyIpDQojPiBhdHRyKCwiY29udHJhc3RzIikkU2V4DQojPiBbMV0gImNvbnRyLnRyZWF0bWVudCINCiM+IA0KIz4gYXR0cigsImNvbnRyYXN0cyIpJGBhZ2UgfCBTdWJqZWN0YA0KIz4gWzFdICJjb250ci50cmVhdG1lbnQiDQpgYGANCg0KVGhlIHJlc3VsdCBpcyBhIHplcm8gcm93IGRhdGEgZnJhbWUuDQoNCipOb3RlOioNCg0KKyBUaGUgaXNzdWUgaXMgdGhhdCB0aGUgc3BlY2lhbCBmb3JtdWxhIGhhcyB0byBiZSBwcm9jZXNzZWQgYnkgdGhlIHVuZGVybHlpbmcgcGFja2FnZSBjb2RlLCBub3QgdGhlIHN0YW5kYXJkIGBtb2RlbC5tYXRyaXgoKWAgYXBwcm9hY2guDQoNCisgRXZlbiBpZiB0aGlzIGZvcm11bGEgY291bGQgYmUgdXNlZCB3aXRoIGBtb2RlbC5tYXRyaXgoKWAsIHRoaXMgd291bGQgc3RpbGwgcHJlc2VudCBhIHByb2JsZW0gc2luY2UgdGhlIGZvcm11bGEgYWxzbyBzcGVjaWZpZXMgdGhlIHN0YXRpc3RpY2FsIGF0dHJpYnV0ZXMgb2YgdGhlIG1vZGVsLg0KDQo8Mj4gVGhlIHNvbHV0aW9uIGluIHdvcmtmbG93cyBpcyBhbiBvcHRpb25hbCBzdXBwbGVtZW50YXJ5IG1vZGVsIGZvcm11bGEgdGhhdCBjYW4gYmUgcGFzc2VkIHRvIGBhZGRfbW9kZWwoKWAuIA0KDQotIEV4YW1wbGU6IHVzaW5nIHRoZSBgc3RyYXRhKClgIGZ1bmN0aW9uIGluIHRoZSBgc3Vydml2YWxgIHBhY2thZ2UsIHRoZSBgYWRkX2Zvcm11bGEoKWAgc3BlY2lmaWNhdGlvbiBwcm92aWRlcyB0aGUgYmFyZSBjb2x1bW4gbmFtZXMgYW5kIHRoZW4gdGhlIGFjdHVhbCBmb3JtdWxhIGdpdmVuIHRvIHRoZSBtb2RlbCBpcyBzZXQgd2l0aGluIGBhZGRfbW9kZWwoKWA6DQoNCmBgYHtyIGV2YWwgPSBGQUxTRX0NCg0KbGlicmFyeShzdXJ2aXZhbCkNCg0KcGFyYW1ldHJpY19tb2RlbCA8LSANCiAgc3Vydl9yZWcoKSAlPiUgDQogIHNldF9lbmdpbmUoInN1cnZpdmFsIikNCg0KcGFyYW1ldHJpY193b3JrZmxvdyA8LSANCiAgd29ya2Zsb3coKSAlPiUgDQogICMgVGhpcyBmb3JtdWxhIHBhc3NlcyB0aGUgZGF0YSBhbG9uZyBhcy1pczogDQogIGFkZF9mb3JtdWxhKGZ1dGltZSArIGZ1c3RhdCB+IGFnZSArIHJ4KSAlPiUgDQogIGFkZF9tb2RlbChwYXJhbWV0cmljX21vZGVsLCANCiAgICAgICAgICAgICMgVGhpcyBmb3JtdWxhIGlzIGdpdmVuIHRvIHRoZSBtb2RlbA0KICAgICAgICAgICAgZm9ybXVsYSA9IFN1cnYoZnV0aW1lLCBmdXN0YXQpIH4gYWdlICsgc3RyYXRhKHJ4KSkNCg0KcmFuZG9tX2VmZmVjdHMgPC0gZml0KHBhcmFtZXRyaWNfd29ya2Zsb3csIGRhdGEgPSBvdmFyaWFuKQ0KcmFuZG9tX2VmZmVjdHMNCiM+IOKVkOKVkCBXb3JrZmxvdyBbdHJhaW5lZF0g4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQDQojPiBQcmVwcm9jZXNzb3I6IEZvcm11bGENCiM+IE1vZGVsOiBzdXJ2X3JlZygpDQojPiANCiM+IOKUgOKUgCBQcmVwcm9jZXNzb3Ig4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSADQojPiBmdXRpbWUgKyBmdXN0YXQgfiBhZ2UgKyByeA0KIz4gDQojPiDilIDilIAgTW9kZWwg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSADQojPiBDYWxsOg0KIz4gc3Vydml2YWw6OnN1cnZyZWcoZm9ybXVsYSA9IFN1cnYoZnV0aW1lLCBmdXN0YXQpIH4gYWdlICsgc3RyYXRhKHJ4KSwgDQojPiAgICAgZGF0YSA9IGRhdGEsIG1vZGVsID0gVFJVRSkNCiM+IA0KIz4gQ29lZmZpY2llbnRzOg0KIz4gKEludGVyY2VwdCkgICAgICAgICBhZ2UgDQojPiAgICAgMTIuODczNCAgICAgLTAuMTAzNCANCiM+IA0KIz4gU2NhbGU6DQojPiAgIHJ4PTEgICByeD0yIA0KIz4gMC43Njk2IDAuNDcwNCANCiM+IA0KIz4gTG9nbGlrKG1vZGVsKT0gLTg5LjQgICBMb2dsaWsoaW50ZXJjZXB0IG9ubHkpPSAtOTcuMQ0KIz4gIENoaXNxPSAxNS4zNiBvbiAxIGRlZ3JlZXMgb2YgZnJlZWRvbSwgcD0gOWUtMDUgDQojPiBuPSAyNg0KDQpgYGANCg0KTm90aWNlIGhvdywgaW4gdGhlIGNhbGwgcHJpbnRlZCBhYm92ZSwgdGhlIG1vZGVsLXNwZWNpZmljIGZvcm11bGEgd2FzIHVzZWQuDQoNCjwzPiBBcyBhbiBhbHRlcm5hdGl2ZSB0byB1c2luZyB0d28gZm9ybXVsYXMsIHdlIGNvdWxkIHVzZSBhIHN0cmFpZ2h0Zm9yd2FyZCByZWNpcGUgaW5zdGVhZDoNCg0KYGBge3IgZXZhbCA9IEZBTFNFfQ0KcGFyYW1ldHJpY193b3JrZmxvdyA8LSANCiAgd29ya2Zsb3coKSAlPiUgDQogIGFkZF9yZWNpcGUocmVjaXBlKGZ1dGltZSArIGZ1c3RhdCB+IGFnZSArIHJ4LCBkYXRhID0gb3ZhcmlhbikpICU+JSANCiAgYWRkX21vZGVsKHBhcmFtZXRyaWNfbW9kZWwsIA0KICAgICAgICAgICAgZm9ybXVsYSA9IFN1cnYoZnV0aW1lLCBmdXN0YXQpIH4gYWdlICsgc3RyYXRhKHJ4KSkNCg0KIyBObyBlcnJvcnM6DQpyYW5kb21fZWZmZWN0cyA8LSBmaXQocGFyYW1ldHJpY193b3JrZmxvdywgZGF0YSA9IG92YXJpYW4pDQpgYGANCg0KDQoNCiMjIyA4LjUgRnV0dXJlIFBsYW5zDQoNCjEuIEEgd29ya2Zsb3cgY2FuIGFjY2VwdCB0d28gdHlwZXMgb2YgcHJlcHJvY2Vzc29yczogDQoNCmEuIEEgbW9kZWwgZm9ybXVsYQ0KDQpiLiBBIHJlY2lwZQ0KDQooMSkgUmVjaXBlcyBhcmUgdmVyeSBmbGV4aWJsZSwgYnV0IHRoZXkgZG8gbm90IGVuY29tcGFzcyBldmVyeXRoaW5nIHRoYXQgYSBtb2RlbGluZyBwcmFjdGl0aW9uZXIgbWlnaHQgd2FudCB0byBkbyB0byB0aGUgZGF0YSBwcmlvciB0byBtb2RlbGluZy4gDQoNCihhKSBFeGFtcGxlOiBhIHN1cGVydmlzZWQgZmVhdHVyZSBmaWx0ZXIgbWlnaHQgYmUgb2YgaW50ZXJlc3QuIFN1Y2ggYSBmaWx0ZXIgd291bGQgc2NyZWVuIHByZWRpY3RvcnMgYWdhaW5zdCB0aGUgb3V0Y29tZSB1c2luZyB0aGUgdHJhaW5pbmcgc2V0IGFuZCB1c2UgdGhlIHJlc3VsdHMgdG8gcmVtb3ZlIHRoZSBsZWFzdCByZWxldmFudCBwcmVkaWN0b3JzLiBJbiB0aGUgZnV0dXJlLCBhIHNwZWNpZmljYXRpb24gZm9yIHRoaXMgdHlwZSBvZiBwcmUtbW9kZWwgb3BlcmF0aW9uIHdpbGwgYmUgcGFzc2VkIHRvIGEgd29ya2Zsb3cgdG8gaW5jbHVkZSBpdCBpbiB0aGUgbW9kZWxpbmcgcHJvY2Vzcy4gVGhpcyBpcyBhIGNyaXRpY2FsIHN0ZXAgdGhhdCBjYW4gaGF2ZSBhIHByb2ZvdW5kIGVmZmVjdCBvbiBtb2RlbCBwZXJmb3JtYW5jZS4gQXMgZGlzY3Vzc2VkIGluIHRoZSBuZXh0IGNoYXB0ZXIsIGEgY29tbW9uIHBpdGZhbGwgaW4gbW9kZWxpbmcgaXMgdG8gZXhjbHVkZSB0aGlzIHN0ZXAgZnJvbSB0aGUgbW9kZWwgZXZhbHVhdGlvbiBwcm9jZXNzLg0KDQoyLiBUaGVyZSBhcmUgYWxzbyBvcGVyYXRpb25zIHRoYXQgbWlnaHQgb2NjdXIgX2FmdGVyXyB0aGUgbW9kZWwgaXMgZml0LiANCg0KKGEpIEV4YW1wbGU6IGN1dG9mZiBzZWxlY3Rpb24gZm9yIHR3by1jbGFzcyBwcm9ibGVtcy4gUHJldmlvdXNseSBpbiB0aGlzIGNoYXB0ZXIsIHdlIGRpc2N1c3NlZCB0aGUgaWRlYSBvZiBtb2RpZnlpbmcgdGhlIGN1dG9mZiBmb3IgYSB0d28tY2xhc3MgcHJvYmxlbS4gSW4gdGhlIGZ1dHVyZSwgd29ya2Zsb3dzIHdpbGwgYmUgYWJsZSB0byBhdHRhY2ggYSBjdXN0b20gY3V0b2ZmIHRoYXQgaXMgYXBwbGllZCB0byBwcm9iYWJpbGl0aWVzIGFmdGVyIHRoZSBtb2RlbCBmaXQuIE90aGVyIGFwcHJvYWNoZXMsIHN1Y2ggYXMgcHJvYmFiaWxpdHkgY2FsaWJyYXRpb24sIGNvdWxkIGFsc28gYmUgYWRkZWQgYXMgcG9zdC1wcm9jZXNzb3JzLg0KDQoNCiMjIyA4LjYgQ2hhcHRlciBTdW1tYXJ5DQoNCjEuIFRoZSBtb2RlbGluZyBwcm9jZXNzIGVuY29tcGFzc2VzIG1vcmUgdGhhbiBqdXN0IGVzdGltYXRpbmcgdGhlIHBhcmFtZXRlcnMgb2YgYW4gYWxnb3JpdGhtIHRoYXQgY29ubmVjdHMgcHJlZGljdG9ycyB0byBhbiBvdXRjb21lLiBUaGlzIHByb2Nlc3MgYWxzbyBpbmNsdWRlcyBwcmVwcm9jZXNzaW5nIHN0ZXBzLCBzdWNoIGFzIHRob3NlIG91dGxpbmVkIGluIENoYXB0ZXIgNiwgYW5kIG9wZXJhdGlvbnMgdGFrZW4gYWZ0ZXIgYSBtb2RlbCBpcyBmaXQuIFdlIGludHJvZHVjZWQgYSBjb25jZXB0IGNhbGxlZCBhIG1vZGVsIHdvcmtmbG93IHRoYXQgY2FuIGNhcHR1cmUgdGhlIGltcG9ydGFudCBjb21wb25lbnRzIG9mIHRoZSBtb2RlbGluZyBwcm9jZXNzLg0K</div>
 
 
 

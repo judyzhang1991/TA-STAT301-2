@@ -62,7 +62,7 @@ b. Table of preprocessings recommended for different models:
 
 
 
-_Notes_: 
+_Class Notes_: 
 
 1. Decorrelating predictors may not help improve performance. However, fewer correlated predictors can improve the estimation of variance importance scores. 
 
