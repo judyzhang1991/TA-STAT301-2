@@ -1,0 +1,89 @@
+---
+title: "STAT301-3 Data Science III Overview"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Question 1
+\textbf{Provide a brief outline/overview of the steps involved in a supervised machine learning process.}
+
+- Obtain data. Do quality check(s), etc.
+
+- Split data. This is usually into two - a training set and a test set. Sometimes a third split is created, either for validation set approach or to use for exploratory data analysis (EDA). Stratify (usually by the outcome variable).
+
+- Feature engineering. Create a recipe. Do any scaling, transformation, etc. that are necessary to get the data ready for model fitting. This include principle component analysis (PCA), missing data imputation, anything that needs to be done prior to fitting the models. 
+
+- Set up cross-validation. V-fold cross validation with at least 2 repeats is usually optimal. Select a number of folds such that there are sufficient observations in each fold. Stratify (usually by the outcome variable).
+
+- Set up models. Create tuning grids for each model's tuning parameters. 
+
+- Tune all models across resamples.
+
+- Collect the results of tuning. Determine which class of model performed best on your selected metric. Within that, determine the optimal tuning parameter values. 
+
+- Fit your chosen (tuned) model to the entire training set. 
+
+- Using the results from the training set, fit your chosen model to the entire testing set. 
+
+- Check out how well your model did. 
+
+
+# Question 2
+
+\textbf{Explain the difference between supervised and unsupervised learning.}
+
+The fundamental difference between the two is that, during supervised learning, the "machine" (or model) is \textit{supervised}. Like a teacher in a classroom supervises students' learning, letting them know when their answer is correct or incorrect, in supervised learning the user knows the truth for each observation and can determine whether or not the model is correct. The model parameters are updated based on its performance. 
+
+By contrast, unsupervised learning is \textit{unsupervised}. Cluster analysis is a good example of this. In cluster analysis, models usually are not judged based on accuracy - the models are given the data and set loose to find patterns, or clusters. There is no right or wrong cluster solution. In general, any time models are learning from data and there is no "answer key", it's likely to be unsupervised learning. 
+
+# Question 3
+
+\textbf{In general, we can classify a model by its purpose into 1 of the 3 categories below. Provide a breif description of the goals of these models classes.}
+
+1. \textit{Descriptive Models}: Models intended to describe trends in data - like drawing a line on a scatterplot to emphasize a pattern or detecting patterns in medical images. 
+
+2. \textit{Inferential Models}: Models intended to test hypotheses about causal relationships and/or experiments - like whether administering a treatment causes a reduction in a symptoms. 
+
+3. \textit{Predictive Models}: Models intended to predict an outcome variable as accurately as possible. 
+
+
+# Question 4
+
+\textbf{We can describe predictive models by how they were developed as being either mechanistic or empirically driven.}
+
+- \textbf{What does it mean to be a mechanistic model?}
+
+Mechanistic models are heavily based on assumptions made about the parameters and relationships between the parameters. Linear regression is an example of a mechanistic model. 
+
+- \textbf{What does it mean to be an empirically driven model?}
+
+Empirically driven models are generated from data and make very few, if any, assumptions about the parameters, etc. They are defined by the structure of their prediction(s). Random forest(s) are an example of empirically driven model.
+
+- \textbf{How does the mechanistic and empirically driven model terminology relate to the parametric and nonparametric model terminology?}
+
+Mechanistic models tend to be parametric; that is, they assume that the complexity of the data is bounded y a finite set of specific parameters. 
+
+Empirically driven models tend to be nonparametric; which primarily means that they do not make such an assumption and do not have a fixed/finited set of parameters. 
+
+- \textbf{In general, is a mechanistic or empirically driven model eaiser to understand? Explain.}
+
+Mechanistic models are usually easier to understand. A linear regression, for example, is easier to understand and explain than a random forest. This is because the assumtpions and parameters are fixed and known, etc. 
+
+- \textbf{How does the mechanistic and empirically driven model terminology related to the idea of model flexibility? That is, which would be more or less flexible than the other?}
+
+Empirically driven models are generally much more flexible than mechanistic models (for reasons described above).
+
+- \textbf{Describe the bias-variance trade-off when considering the use of a mechanistic or empirically driven model.}
+
+Using a mechanistic model is like taking a fixed frame and trying to fit different data shapes into said frame. It results in lower variance - because the frame itself, or the model mechanisms, do not change very much - but bigger bias, because the data likely do not exactly fit the mechanisms of the model. 
+
+On the other hand, using an empirically-drive model is like modling a frame to a data shape. It results in higher variance - because the mold differs depending on the data it was fit to - but lower bias, because the data themselves fit the mold very closely. 
+
+
+# Question 5
+
+\textbf{Explain the difference between a regression and  classification machine learning (ML) problems.}
+
+The type of outcome variable being predicted determines whether an ML problem is a regression or classification problem. If the outcome variable is continuous, the ML problem is regression; if it is categorical, it is classification. 
+
