@@ -87,3 +87,55 @@ On the other hand, using an empirically-drive model is like modling a frame to a
 
 The type of outcome variable being predicted determines whether an ML problem is a regression or classification problem. If the outcome variable is continuous, the ML problem is regression; if it is categorical, it is classification. 
 
+
+
+# Question 6
+
+\textbf{When splitting the data, why is it useful to stratify by the outcome/target variable?}
+
+It is almost always useful to stratify by the outcome; this makes sure that all splits of the data will have the same (or very similar) outcome distribution. 
+
+For example, if you do not stratify and the outcome is normally distributed, a split (random sample) is more likely to contain outcome values in the middle of the distribution, and may not be a representative sample. 
+
+Stratifying is especially important with categorical outcomes, even more so if the outcome is imbalanced (one group is more common than another). 
+
+
+# Question 7 
+
+\textbf{Briefly describe how v-fold cross validation with repeats is used to estimate test RMSE. Also provide an explanation of why we use it.}
+
+When we do V-fold cross-validation, we divide the training set into V folds. We then hold out one fold each time as a mini test set, or assessment set, and use the remaining folds as a mini tranining set. By fitting models to the mini training sets and testing them on the mini testing sets, we can get an idea of how the models will perform on ew data and (usually) get a good estimate of the model's RMSE on the test set.
+
+
+
+# Question 8
+
+\textbf{Briefly describe the model tuning and why we use it.}
+
+Certain parameters - known as tuning parameters, or hyperparameters - are user specified; their values can not be optimized directly from the data. The results of the model(s) change depending on the values of their hyperparameters. We can improve (or worsen) the performance of the model(s) by changing hyperparameter values. We tune by estimating the model(s) multiple times with different values and comparing performance.
+
+
+# Question 9
+
+\textbf{What are two common performance metrics when dealing with a regression ML problem?}
+
+Root mean squared error (RMSE) and $R^2$ are common performance metrics for regression. 
+
+\textbf{What are two common performance metrics when dealing with a classification ML problem?}
+
+The area under the receiver operating curve (AUC ROC) and accuracy are common performance metrics for a classification ML problem.
+
+
+# Question 10
+
+\textbf{A political candidate's campaign has detailed voter history data for their constituents. The campaign is interested in two questions:}
+
+\textbf{1. Given a voter's profile/data how likely is it that they will vote in favor of the candidate?}
+
+\textbf{2. How would a voter's likelihood of support for the candidate change if they had personal contact ith the candidate?}
+
+\textbf{Classify each question/problem as either predictiv or inferential. Explain your reasoning for each.}
+
+1. A predictive question; the campaign is interesting in predicting vote based on other information. 
+
+2. An inferential question; the campaign has a hypothesis that they are testing, and they are interested in whether change in a specific predictor variable causes a change in the outcome. 
