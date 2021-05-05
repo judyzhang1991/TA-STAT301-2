@@ -1,0 +1,83 @@
+---
+title: "STAT301-3 Data Science III Feature Engineering Revisted"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Question 1
+\textbf{When choosing and deploying feature engineering steps what should an analyst consider first? Or more broadly state, what is the purpose of feature engineering?}
+
+Feature engineering is, generally speaking, the process of creating representations of data to increase the effectiveness of a model. Understanding the interplay between predictors and model types can help imrpove model performance. 
+
+# Question 2
+\textbf{When is it necessary to dummy encode factor variables? Provide examples of when it is necessary and when it is unnecessary.}
+
+It is not necessary to dummy-code factors if you are fitting tree-based models or naive Bayes models; these classes of model can naturally handle non-numerical predictors. It is, however, necessary to create numeric versions of predictors for most other model classes. 
+
+# Question 3
+\textbf{When dummy encoding a factor variable with a large number of levels/categories, what are the two filtering steps we could take to handle rarely occuriring levels/categories? When should they be applied within our feature engineering recipe? (Should identify the `step_` functions you would use to deploy these methods).}
+
+You can use `step_zv()` or `step_nzv` to remove either the zero-variance predictors or the near-zero variance predictors. This can be necessary when there is a large number of dummy variables for a factor because resampling means some folds may have all 0s on a dummy, etc.
+
+\textbf{If we decided that we want to avoid filtering our rarely occurring levels/categories, then what is one option/alternative that we have?}
+
+You could use `step_other()` to collapse rarely occurring or uncommon factor levels into one group. 
+
+
+# Question 4
+\textbf{Name two model types that are sensitive to skewed predictors or predictors with extreme/unusual values (i.e. outliers)}
+
+The Box-Cox (`step_BoxCox()`) and Yeo-Johnson `step_YeoJohnson()` transformations are useful for handling skewness. 
+
+\textbf{When must you pick the Yeo-Johnson transformation over the Box-Cox transformation to handle skewness?}
+
+The Box-Cox transformation works with data that are strictly positive (that is, no negative values). If there are negative values in your data, you should use the Yeo-Johnson transformation.
+
+\textbf{Are there any model types that are immune to such issues with their predictors? If so, name one.}
+
+No model class can truly be said to be immune to problems with skew or outliers. 
+
+
+
+# Question 5
+\textbf{When is a standardization process (think scaling) eseential? Provide an example of when it is essential.}
+
+Scaling is usually needed when predictors are in different units and the model type being used performs better with (or requires) predictors to be in the same units. KNN models and elastic net models in particular often benefit from scaling/standardization. 
+
+
+# Question 6
+\textbf{Name two model types that are adversely affected by highly correlated predictor variables. Name two methods that could be used to help with this issue - identify their `step_` functions.}
+
+Elastic net models and SVMs are two examples of model types that require predictors to be relatively uncorrelated with each other. PCA (principal component analysis), (or `step_pca()`, `step_kpca()`, etc.), and PLS (partial least squares), or (`step_pls()`) can help with this problem.
+
+
+# Question 7
+\textbf{Why is it essential that we address missing data? And, what is the first and most important question when encountering missing data?}
+
+Missing data must be addressed because the majority of feature engineering requires that the data have no missing values. Also, many predictive model types can not handle missingness.
+
+The absolute most important question we must ask when we encounter missing data is "why is the data missing?" THat answer gives important information about how the missingness should be handled. Unfortunately, with real data, it can often be hard to determine an accurate answer. 
+
+# Quesiton 8
+\textbf{One framework to view missing values is through the lens of the machnisms of missing data. What are three common mechanisms for missing data? Also provide a short description of each.}
+
+- MCAR (Missing Completely at Random): The missingness is independent of both observable and unobservable study variables; it occurs completely at random.
+
+- MAR (Missing at Random): The reason for missingness is related to observed variables in the study. 
+
+- MNAR (Missing Not at Random): The reason for missingness is related to unobserved variables in the study. That is, the reason an observation is missing is related to the unknown value of the observation. 
+
+# Quesiton 9
+\textbf{Three methods to deal with missiness are deletion of data, enconding missingness, and imputation. When using deletion of data, we may face of the choice of deleting predictors (columns) or sample/observations (rows). In general, which should we identfy first for removal, predictors or samples with high degree of missingness? Explain.}
+
+In machine learning, we tend to have data with a lot of possible predictors, and observations are harder to come by. Therefore, in general, you should identify predictors to remove first, and remove observations afterward if necessary.
+
+\textbf{When can we using the method of encoding missingness?}
+
+Encoding missingess works well in cases of structural missingness. 
+
+\textbf{Name at least three imputation methods you can use in `tidymodels`? Identify their `step_` function. Above what "line-of-dignity" threshold is too much data imputation for a predictor/column?}
+
+`tidymodels` has steps to implement KNN imputation (`step_impute_knn()`), imputation via bagged trees (`step_impute_bag()`), and linear model imputation (`step_impute_linear()`). Generally, if more than about $20\%$ of a predictor is missing, it is better to discard the predictor than use imputation. 
+
