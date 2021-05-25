@@ -1,0 +1,86 @@
+---
+title: "STAT301-3 Data Science III Feature Engineering Revisted"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Question 1
+\textbf{When considering calssification metric it is essential to understand the 4 essential terms below. Provide a definition for each.}
+
+\textit{True positives}
+Positives that are correctly classified as positives (or events that are correctly classified as events).
+
+\textit{True negatives}
+Negatives that are correctly classified as negatives (or non-events that are correctly classified as non-events).
+
+\textit{False positives}
+Negatives that are incorrectly classfied as positives (or non-events that are incorrectly classified as events). 
+
+\textit{False negatives}
+Positives that are incorrectly classified as negatives (or events that are incorrectly classified as non-events).
+
+
+Example: suppose we are attempting to classify an email as spam or not spam. We consider the prediction of spam to be a success or positive condition. 
+
+\textit{True positives}
+A spam email is classified as spam. The email is caught by the spam filter and goes unread.
+
+\textit{True negatives}
+A non-spam email is not classified as spam. The email remains in the inbox and is read. 
+
+\textit{False positives}
+A non-spam email is classified as spam. It ends up in the spam filter and likely goes unread. (The worst outcome here and should be avoided)
+
+\textit{False negatives}
+A spam email is not classified as spam. The email avoids the spam filter and ends up in the inbox. 
+
+
+# Question 2
+\textbf{Using the email example again, suppose we are attempting to classify an email as spam or not spam. We consider the prediction of spam to be a success or positive condition. Describe each of the metrics in context of our example and indicate how to use the metric (meaning are lower or higher values better): we denote true positives, true negatives, false positives, and false negatives as TP, TN, FP, FN, respectively.}
+
+\textit{Accraucy:}
+The proportion of all emails that are correctly classified (whether as spam or not as spam). Higher values are better:
+
+accuracy $=\frac{TP + TN}{TP + TN + FP + FN}$
+
+\textit{Precision:}
+The proportion of all emails classified as spam that were actually spam. Higher values are better. 
+
+precition $= \frac{TP}{TP + FP}$
+
+\textit{Recall:}
+The proportion of all spam emails that were correctly classified as spam. Higher values are better. 
+
+recall $= \frac{TP}{TP + FN}$
+
+\textit{Sensitivity:}
+The same as recall.
+
+sensitivity $= \frac{TP}{TP + FN}$
+
+\textit{Specificity:}
+The proportion of all not-spam emails that were correctly classified as not spam. Hihger values are better. 
+
+specificity $= \frac{TN}{TN+FP}$
+
+
+
+# Question 3
+\textbf{Name one metric that you would use if you are trying to balance recall and precision. Also indicate how to read/use the metric to compare models.}
+
+The F measure is useful if trying to balance recall and precision. It's the harmonic mean of precision and recall. The larger the F meausre, the more the predictive power of the model; it ranges from 0 to 1. 
+
+# Question 5
+\textbf{When conducting regression ML we have used root mean squared error and R squared. In a few cases we made use of mean absolute error. Name at least 2 other regression performance metrics and their functions in our tidymodel framework. Provide a description of the metric and how to use it to understand a model's performance.}
+
+Two other regression performance metrics are:
+
+(1) mean percentage error (or the average percentage of error)
+
+(2) mean absolute error (the mean absolute value of the error)
+
+Higher numbers of both metrics represent more error; lower values represent better models. 
+
+
+
